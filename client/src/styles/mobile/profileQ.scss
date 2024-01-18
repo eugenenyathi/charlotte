@@ -1,0 +1,51 @@
+@media (max-width: $tablet-size-mq) {
+  .user-profile-content {
+    .heading {
+      font-size: 25px;
+      margin-bottom: 25px;
+    }
+  }
+
+  .info-wrapper {
+    .info {
+      margin-bottom: 8px;
+      padding: 14px 0px;
+
+      p {
+        font-size: 16px;
+
+        &:first-child {
+          font-size: 18px;
+        }
+      }
+
+      &.show {
+        @include flexSpaceBtw;
+      }
+    }
+  }
+}
+
+@media (max-width: $mobile-size-mq) {
+  .user-profile-content {
+    .heading {
+      font-size: 23px;
+      margin-bottom: 20px;
+    }
+  }
+
+  .info-wrapper {
+    .info {
+      margin-bottom: 0px;
+      padding: 13px 0px;
+
+      p {
+        font-size: 15px;
+
+        &:first-child {
+          font-size: 16px;
+        }
+      }
+    }
+  }
+}

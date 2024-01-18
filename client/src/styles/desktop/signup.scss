@@ -1,0 +1,41 @@
+.signup-container {
+	@extend .front-container;
+}
+
+.signup-content {
+	@extend .front-content;
+}
+
+.signup-header {
+	@extend .front-header;
+
+	&.set-password {
+		margin-bottom: 20px;
+	}
+
+	&.show-alert {
+		margin-bottom: 0px;
+	}
+}
+
+.signup-control {
+	@extend .form-control;
+
+	label {
+		@extend .label;
+	}
+
+	.signup-input {
+		@extend .form-input;
+		height: 48px;
+	}
+
+	.eye-icon {
+		top: 68%;
+	}
+}
+
+.signup-btn {
+	@extend .front-btn;
+	margin-top: 20px;
+}

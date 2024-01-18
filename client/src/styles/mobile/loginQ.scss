@@ -1,0 +1,115 @@
+@media (max-width: $tablet-size-mq) {
+  .signin-content {
+    width: 370px;
+    padding: 25px;
+
+    .logo-wrapper {
+      margin: 18px 0 18px 0px;
+
+      img {
+        width: 230px;
+      }
+    }
+  }
+
+  .form-control {
+    .signin-input {
+      font-size: 16px;
+      letter-spacing: 0.4px;
+      height: 47px;
+      padding: 0px 13px;
+
+      &::placeholder {
+        font-size: 15px;
+      }
+    }
+  }
+
+  .forgot-password {
+    font-size: 15px;
+    letter-spacing: 0.4px;
+  }
+
+  .signin-btn {
+    margin-top: 14px;
+    height: 50px;
+    padding: 0px 13px;
+    font-size: 16px;
+    letter-spacing: 0.4px;
+  }
+
+  .footer {
+    margin-top: 38px;
+    font-size: 15px;
+  }
+
+  .create-account {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: $mobile-size-mq) {
+  .signin-container {
+    background-color: $color-white;
+  }
+
+  .signin-content {
+    width: 100%;
+    height: auto;
+    margin-top: -50px;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 30px;
+
+    .logo-wrapper {
+      margin-bottom: 30px;
+
+      img {
+        width: 215px;
+      }
+    }
+  }
+
+  .signin-control {
+    margin-bottom: 17px;
+
+    &.last-child {
+      margin-bottom: 17px;
+    }
+
+    .signin-input {
+      height: 43px;
+      padding: 0px 13px;
+      border-color: $color-grey-7;
+      border-radius: 5px;
+      background-color: $color-grey-7;
+      transition: $transition;
+
+      &:focus {
+        border-color: $color-grey-eee;
+      }
+    }
+
+    .eye-icon {
+      font-size: 17px;
+    }
+  }
+
+  .forgot-password {
+    font-size: 15px;
+  }
+
+  .signin-btn {
+    margin-top: 15px;
+    height: 47px;
+    padding: 0px 10px;
+  }
+
+  .create-account {
+    margin-top: 10px;
+  }
+
+  .footer {
+    display: none;
+  }
+}

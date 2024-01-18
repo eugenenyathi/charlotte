@@ -1,0 +1,41 @@
+.reset-container {
+  @extend .front-container;
+  margin-top: 0px;
+}
+
+.reset-content {
+  @extend .front-content;
+}
+
+.reset-header {
+  @extend .front-header;
+  margin: 8px 0px 23px 0px;
+
+  &.show-alert {
+    margin: 0;
+  }
+}
+
+.reset-control {
+  @extend .form-control;
+  margin-bottom: 13px;
+
+  label {
+    @extend .label;
+  }
+
+  .reset-input {
+    @extend .form-input;
+    height: 43px;
+  }
+
+  .eye-icon {
+    top: 68%;
+  }
+}
+
+.reset-btn {
+  @extend .front-btn;
+  height: 48px;
+  margin-top: 20px;
+}

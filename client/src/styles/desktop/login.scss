@@ -1,0 +1,94 @@
+.signin-container {
+  @extend .front-container;
+  margin-top: 0px;
+}
+
+.signin-content {
+  @extend .front-content;
+  box-shadow: 0 8px 13px rgba(0, 0, 0, 0.15);
+
+  .logo-wrapper {
+    margin: 15px 0 18px 0px;
+    @include flexCenter;
+
+    img {
+      width: 245px;
+    }
+  }
+}
+
+.signin-control {
+  @extend .form-control;
+
+  &.last-child {
+    margin-bottom: 11px;
+  }
+
+  label {
+    @extend .label;
+  }
+
+  .signin-input {
+    @extend .form-input;
+    height: 45px;
+  }
+}
+
+.eye-icon {
+  @include icon(50%, 13px);
+  color: $color-grey-6;
+  font-size: 18px;
+
+  &:hover {
+    color: $color-dark-3;
+  }
+}
+
+.forgot-password {
+  display: block;
+  text-align: center;
+  color: $color-grey-aaa;
+  font-size: 14px;
+  font-weight: 100;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: $transition;
+  text-decoration: none;
+
+  &:hover {
+    color: $color-dark-3;
+  }
+
+  &.show-alert {
+    display: none;
+  }
+}
+
+.create-account {
+  @extend .forgot-password;
+  margin-top: 8px;
+  color: $color-dark-3;
+  font-size: 14px;
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  &.show-alert {
+    display: none;
+  }
+}
+
+.signin-btn {
+  @extend .front-btn;
+  height: 48px;
+  margin-top: 13px;
+}
+
+/*Footer*/
+
+.footer {
+  margin-top: 36px;
+  font-size: 16px;
+  text-align: center;
+}

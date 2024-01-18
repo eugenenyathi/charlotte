@@ -1,0 +1,80 @@
+.sidebar-wrapper {
+	position: fixed;
+	top: 0;
+	bottom: 0;
+	width: $sidebar-size;
+	padding: 20px;
+	background-color: $color-white;
+
+	&::after {
+		position: absolute;
+		top: 0;
+		right: 0;
+		content: "";
+		width: 1px;
+		height: 100%;
+		background-color: $color-grey-9;
+	}
+}
+
+.nav-wrapper {
+	display: none;
+}
+
+.mylsu-logo {
+	color: $color-dark-3;
+	font-size: 18px;
+	letter-spacing: 0.3px;
+	padding-left: 12px;
+	margin-top: 5px;
+	margin-bottom: 25px;
+}
+
+.logo-wrapper {
+	margin: 25px 0px 25px 0px;
+	display: flex;
+	align-items: center;
+
+	img {
+		width: 13vw;
+	}
+}
+
+.menu-ul-wrapper {
+	.menu-link {
+		list-style: none;
+		margin-bottom: 4px;
+
+		a {
+			position: relative;
+			display: block;
+			width: 100%;
+			color: $color-dark-6;
+			text-decoration: none;
+			padding: 13px 15px;
+			font-size: 15px;
+			border-radius: 4px;
+			background-color: transparent;
+			transition: $transition;
+
+			&:hover {
+				background-color: $color-grey-9;
+			}
+
+			&.router-link-exact-active {
+				color: $color-dark-1;
+				font-weight: bold;
+
+				.link-icon {
+					color: $color-dark-1;
+				}
+			}
+		}
+
+		.link-icon {
+			margin-right: 13px;
+			font-size: 16px;
+			transition: $transition;
+		}
+	}
+}

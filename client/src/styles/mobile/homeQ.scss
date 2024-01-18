@@ -1,0 +1,19 @@
+@media (max-width: $tablet-size-mq) {
+  .home-content {
+    top: 11%;
+    left: 0;
+    width: 100%;
+    padding: 30px;
+  }
+}
+
+@media (max-width: $mobile-size-mq) {
+  .home-wrapper {
+    background-color: $color-light-1;
+  }
+
+  .home-content {
+    top: 10%;
+    padding: 25px;
+  }
+}

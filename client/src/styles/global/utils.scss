@@ -1,0 +1,160 @@
+.error {
+  border: 2px solid $color-danger-1;
+}
+
+.shake {
+  animation: shake 140ms linear 0s;
+}
+
+.alert {
+  padding: 8px;
+  border: 1px solid $color-dark-1;
+  border-radius: 4px;
+  margin-top: 18px;
+  margin-bottom: 13px;
+
+  color: $color-dark-2;
+  text-align: center;
+  width: 100%;
+  font-size: 13px;
+  animation: fade 500ms linear;
+
+  &.alert-danger {
+    color: $color-danger-1;
+    border-color: $color-grey-3;
+    background: $color-grey-3;
+  }
+
+  &.alert-success {
+    color: $color-success-1;
+    border-color: $color-grey-4;
+    background: $color-grey-4;
+  }
+}
+
+.label {
+  display: block;
+  margin-bottom: 6px;
+  letter-spacing: 0.25px;
+  font-size: 15px;
+  color: $color-dark-1;
+}
+
+.width-container {
+  max-width: 95%;
+  margin: 0 auto;
+  overflow: none;
+}
+
+@mixin icon($top, $right) {
+  position: absolute;
+  top: $top;
+  right: $right;
+  transform: translateY(-$top);
+
+  outline: none;
+  border: none;
+  color: $color-dark-1;
+  cursor: pointer;
+  font-size: 24px;
+  background-color: transparent;
+  transition: color 250ms linear 0ms;
+}
+
+.icon {
+  outline: transparent;
+  cursor: pointer;
+  border: none;
+  background-color: transparent;
+  font-size: 18px;
+}
+
+.btn {
+  outline: none;
+  border: none;
+  padding: 10px 15px;
+  margin: 10px 0;
+  font-size: 1rem;
+  letter-spacing: 0.25px;
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 5px;
+  background-color: blue;
+  transition: background-color 250ms ease-in 10ms;
+}
+
+.block-btn {
+  @extend .btn;
+  display: block;
+  width: 100%;
+  margin: 0;
+  margin-top: 20px;
+  padding: 15px 15px;
+  background-color: red;
+}
+
+.pop-back {
+  margin-top: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+
+  button {
+    outline: none;
+    border: none;
+    background-color: transparent;
+    font-size: 14px;
+    margin-right: 5px;
+  }
+
+  a {
+    text-decoration: none;
+    color: $color-grey-6;
+    cursor: pointer;
+    font-size: 14px;
+    transition: $transition;
+
+    &:hover {
+      color: $color-dark-1;
+    }
+  }
+}
+
+.basic-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding: 9px 0px;
+  box-shadow: $box-shadow;
+  background-color: $color-light-1;
+  z-index: 1000;
+}
+
+.basic-text {
+  color: $licorice;
+  font-size: 16px;
+  letter-spacing: 0.25px;
+}
+
+@keyframes shake {
+  0% {
+    transform: translateX(4%);
+  }
+  50% {
+    transform: translateX(-8%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+@keyframes fade {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}

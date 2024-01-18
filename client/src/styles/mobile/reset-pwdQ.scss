@@ -1,0 +1,26 @@
+@media (max-width: 880px) {
+  .reset-header {
+    margin: 13px 0px 25px 0px;
+  }
+
+  .reset-control {
+    label {
+      margin-bottom: 8px;
+    }
+    .reset-input {
+      height: 43px;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .reset-control {
+    .reset-input {
+      height: 40px;
+    }
+  }
+
+  .reset-btn {
+    margin-top: 25px;
+  }
+}

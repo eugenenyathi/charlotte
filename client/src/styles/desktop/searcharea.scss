@@ -1,0 +1,117 @@
+.search-area-container {
+  margin-top: 30px;
+}
+
+.search-area-form {
+  margin-bottom: 25px;
+}
+
+.search-control {
+  @include flexAlign;
+  height: 48px;
+  border-radius: 4px;
+  border: 2px solid $primary-color;
+
+  .search-icon-wrapper {
+    width: 55px;
+    height: 100%;
+    @include flexCenter;
+    background-color: $primary-color;
+
+    .search-icon {
+      @extend .icon;
+      color: $color-white;
+      font-size: 16px;
+    }
+  }
+}
+
+.search-input-wrapper {
+  position: relative;
+  width: 100%;
+
+  .search-input {
+    display: block;
+    width: 100%;
+    height: 100%;
+    outline: transparent;
+    border: none;
+    font-size: 17px;
+    padding: 0px 15px;
+    background-color: transparent;
+
+    &::placeholder {
+      color: $color-grey-6;
+      letter-spacing: 0.3px;
+    }
+  }
+
+  .clear-search-icon {
+    position: absolute;
+    top: 50%;
+    right: 3.5%;
+    transform: translateY(-50%);
+    @extend .icon;
+    color: $color-grey-ccc;
+    font-size: 18px;
+    transition: $transition;
+
+    &:hover {
+      color: $color-dark-3;
+    }
+  }
+}
+
+.search-results-container {
+  margin-bottom: 25px;
+
+  .search-ul-wrapper {
+    list-style: none;
+
+    .list-item {
+      color: $color-dark-1;
+      cursor: pointer;
+      font-size: 16px;
+      padding: 10px 13px;
+      margin-bottom: 8px;
+      letter-spacing: 0.4px;
+      border-radius: 4px;
+      border: 1px solid $color-grey-ccc;
+      background-color: $color-grey-10;
+
+      transition: $transition;
+
+      & > .search-details.grey-out {
+        cursor: not-allowed;
+      }
+
+      .search-details {
+        @include flexAlign;
+        gap: 15px;
+
+        &.grey-out {
+          .st-name {
+            color: $color-dark-4;
+          }
+        }
+
+        .st-name {
+          color: $color-dark-1;
+          transition: $transition;
+        }
+        .st-number {
+          color: $color-dark-4;
+        }
+      }
+
+      &:hover {
+        .search-details .st-name {
+          color: $color-dark-1;
+        }
+
+        padding-left: 16px;
+        background-color: $color-grey-9;
+      }
+    }
+  }
+}
