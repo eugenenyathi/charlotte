@@ -1,6 +1,6 @@
 import isEmpty from "../helpers/isEmpty.js";
 import stRegex from "../helpers/stRegex.js";
-const validator = require("is-my-date-valid");
+import validator from "is-my-date-valid";
 const validateDate = validator({ format: "YYYY-MM-DD" });
 
 const useValidator = () => {

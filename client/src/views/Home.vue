@@ -15,10 +15,10 @@
 
 <script setup>
 //components
-import Sidebar from "../components/Sidebar";
-import Header from "../components/Header";
-import TabletHeader from "../components/TabletHeader";
-import MobileHeader from "../components/MobileHeader";
+import Sidebar from "../components/Sidebar.vue";
+import Header from "../components/Header.vue";
+import TabletHeader from "../components/TabletHeader.vue";
+import MobileHeader from "../components/MobileHeader.vue";
 //composables
 import useAuth from "../composables/useAuth";
 //vuex

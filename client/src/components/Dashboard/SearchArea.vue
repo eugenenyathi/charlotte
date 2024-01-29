@@ -48,13 +48,13 @@
 
 <script setup>
 //components & helpers
-import { BaseInput, ButtonIcon } from '../../base/'
-import Loader from '../BtnLoader'
+import { BaseInput, ButtonIcon } from '@/base/index.js'
+import Loader from '../BtnLoader.vue'
 import Alert from '../Alert.vue'
-import AlertFn from '../../helpers/AlertFn.js'
+import AlertFn from '@/helpers/AlertFn.js'
 
 //composables
-import useSearch from '../../composables/useSearch.js'
+import useSearch from '@/composables/useSearch.js'
 //vue
 import { ref, reactive, watch, computed } from 'vue'
 import { useStore } from 'vuex'

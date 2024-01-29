@@ -83,14 +83,12 @@ import useLogin from '../composables/useLogin.js'
 import useValidator from '../composables/useValidator.js'
 //helpers
 import getFooterYear from '../helpers/getFooterYear.js'
-import AlertFn from '../helpers/AlertFn.js'
 import watchFn from '../helpers/watchFn.js'
 
 import { ref, reactive, watch } from 'vue'
-import { useStore } from 'vuex'
 
 //assets
-const logo = require('../assets/lupane.png')
+import logo from '../assets/lupane.png'
 
 const studentNumber = ref('')
 const password = ref('12345678')
@@ -101,7 +99,6 @@ const footerYear = getFooterYear()
 
 const error = reactive({ stNumber: false, password: false })
 const alert = reactive({ show: false, msg: '', type: '' })
-const { showAlert, removeAlert } = AlertFn(alert)
 const { watchAxiosErr } = watchFn()
 
 const { validateStNumber, validatePassword } = useValidator()
