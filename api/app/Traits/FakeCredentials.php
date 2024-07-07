@@ -13,11 +13,32 @@ trait FakeCredentials
     private $letters = "ABCDEFGHIJKLMNOQRSTUVWXYZ";
     private $numbers = "0123456789";
 
+    private function createFakeName($names)
+    {
+        /** 
+         * 1. Get two random fullNames
+         * 2. Explode each random fullNames
+         * 3. One will be used for the firstName and the other for the lastname
+         * 4. Create a new name
+         */
+
+        $randomNumber1 = $this->random(0, count($names) - 1);
+        $randomName1 = $names[$randomNumber1];
+
+        $randomNumber2 = $this->random($randomNumber1, count($names) - 1);
+        $randomName2 = $names[$randomNumber2];
+
+        $firstName = explode(" ", $randomName1)[0];
+        $lastName = explode(" ", $randomName2)[1];
+
+        return $firstName . " " . $lastName;
+    }
+
     public function fakeStudentID()
     {
         while (true) {
             $studentID = $this->createStudentID();
-            $idExists = Student::where('id', $studentID)->exists();
+            $idExists = Student::where('student_id', $studentID)->exists();
 
             if ($idExists) continue;
             return $studentID;
@@ -70,6 +91,14 @@ trait FakeCredentials
         $randomNumbers = str_shuffle($this->numbers);
         $sixNumbers = Str::substr($randomNumbers, 0, 6);
         $sixNumbers = str_shuffle($sixNumbers);
+
+        while (true) {
+            $firstNumber = $sixNumbers[0];
+            if ($firstNumber !== '0') break;
+            else {
+                $sixNumbers = str_shuffle($sixNumbers);
+            }
+        }
 
         $letters = str_shuffle($this->letters);
         $studentID = 'L0' . $sixNumbers . $letters[$this->random(0, Str::length($this->letters) - 1)];

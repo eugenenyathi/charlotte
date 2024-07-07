@@ -2,11 +2,14 @@
 
 namespace Database\Seeders;
 
+use App\Constants\StudentConstants;
 use App\Models\Payment;
 use App\Models\Profile;
 use App\Models\Student;
+use App\Models\Tuition;
 use App\Traits\FakeCredentials;
 use App\Traits\Utils;
+use App\Traits\VUtils;
 use Illuminate\Database\Seeder;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
@@ -19,46 +22,65 @@ class PaymentsSeeder extends Seeder
      */
 
     use Utils;
+    use VUtils;
 
     public function run()
     {
         //get all students
         $students = $this->fetchStudents();
+        $activeStudentType = $this->getActiveStudentType();
 
         // dd(count($students));
 
         foreach ($students as $student) {
 
+            $amountCleared = $this->amountCleared($student->student_id);
+            // $this->registeredStatus($student->student_id, $activeStudentType, $amountCleared)
             Payment::create([
-                'student_id' => $student->id,
-                'amount_cleared' => $this->amountCleared($student->id),
-                'registered' => 1,
+                'student_id' => $student->student_id,
+                'amount_cleared' => $amountCleared,
+                'registered' => $this->registeredStatus($student->student_id, $activeStudentType, $amountCleared),
             ]);
         }
     }
 
-    //students without accounts
-    private function fetchStudents()
+    private function registeredStatus($studentID, $activeStudentType, $amountCleared)
     {
-        $students = Student::select('id')->get();
-        $virgins = [];
+        $studentFaculty = $this->facultyID($studentID);
+        $facultyTuition = Tuition::where('faculty_id', $studentFaculty)->first();
 
-        foreach ($students as $student) {
-            $hasAccount = Payment::where('student_id', $student->id)->exists();
-
-            if ($hasAccount) continue;
-            else $virgins[] = $student;
+        switch ($activeStudentType) {
+            case StudentConstants::CON_STUDENT:
+                $minimumRequiredTuition = $facultyTuition->con_amount * 0.60;
+                return $amountCleared >= $minimumRequiredTuition ? 1 : 0;
+                break;
+            case StudentConstants::BLOCK_STUDENT:
+                $minimumRequiredTuition = $facultyTuition->block * 0.60;
+                return $amountCleared >= $minimumRequiredTuition ? 1 : 0;
+                break;
         }
-
-        return $virgins;
     }
 
     private function amountCleared($studentID)
     {
         $studentType = $this->studentType($studentID);
 
-        if ($studentType === "Conventional") {
-            return $this->random(150000, 250000);
-        } else return $this->random(70000, 135000);
+        switch ($studentType) {
+            case StudentConstants::CON_STUDENT:
+                return $this->random(400, 650);
+            case StudentConstants::BLOCK_STUDENT:
+                return $this->random(180, 400);
+        }
+    }
+
+    //students without accounts
+    private function fetchStudents()
+    {
+        $students = Student::select('student_id')->get();
+
+        return $students->filter(function ($student) {
+            $hasAccount = Payment::where('student_id', $student->student_id)->exists();
+            return !$hasAccount;
+        });
     }
 }

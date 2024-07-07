@@ -1,0 +1,47 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+//global styles
+@import './global/config';
+@import './global/utils';
+@import './global/front';
+
+//targeted styles
+@import './desktop/login';
+@import './desktop/signup';
+@import './desktop/reset-pwd';
+@import './desktop/sidebar';
+@import './desktop/header';
+@import './desktop/home';
+@import './desktop/dashboard';
+@import './desktop/profile';
+@import './desktop/residence';
+@import './desktop/settings';
+
+//global media queries
+@import './global/frontQ';
+@import './global/utilsQ';
+
+//targeted media queries
+@import './mobile/loginQ';
+@import './mobile/signupQ';
+@import './mobile/reset-pwdQ';
+
+//mobile device styles
+@import './mobile/tablet-header';
+@import './mobile/mobile-nav';
+@import './mobile/homeQ';
+@import './mobile/dashboardQ';
+@import './mobile/profileQ';
+@import './mobile/residenceQ';
+@import './mobile/settingsQ';

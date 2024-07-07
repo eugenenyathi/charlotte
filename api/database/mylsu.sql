@@ -192,7 +192,7 @@ CREATE TABLE `migrations` (
 
 LOCK TABLES `migrations` WRITE;
 /*!40000 ALTER TABLE `migrations` DISABLE KEYS */;
-INSERT INTO `migrations` VALUES (1,'2014_10_12_000000_create_users_table',1),(2,'2014_10_12_100000_create_password_resets_table',1),(3,'2019_08_19_000000_create_failed_jobs_table',1),(4,'2019_12_14_000001_create_personal_access_tokens_table',1),(5,'2023_01_06_023844_create_students_table',1),(6,'2023_01_06_032853_create_faculties_table',1),(7,'2023_01_06_032938_create_programmes_table',1),(8,'2023_01_06_033253_create_profile_table',1),(9,'2023_01_06_035124_create_tuition_table',1),(10,'2023_01_06_035137_create_payments_table',1),(11,'2023_01_21_185644_create_user_login_timestamps',1),(12,'2023_01_23_205018_create_residence_table',1),(13,'2023_01_23_205046_create_old_residence_table',1),(14,'2023_01_23_220250_create_checkinout_table',1),(15,'2023_01_23_220856_create_hostel_fees_table',1),(16,'2023_01_30_215711_create_requester_table',1),(17,'2023_01_30_215738_create_requests_table',1),(18,'2023_01_30_221152_create_request_candidates_table',1),(19,'2023_02_05_065622_create_suburb_rooms_table',1),(20,'2023_02_05_065712_create_mbundani_rooms_table',1),(21,'2023_02_05_235217_create_room_ranges_table',1),(22,'2023_02_15_052811_create_active_student_type',1),(23,'2023_02_15_052916_create_search_exception',1);
+INSERT INTO `migrations` VALUES (1,'2014_10_12_000000_create_users_table',1),(2,'2014_10_12_100000_create_password_resets_table',1),(3,'2019_08_19_000000_create_failed_jobs_table',1),(4,'2019_12_14_000001_create_personal_access_tokens_table',1),(5,'2023_01_06_023844_create_students_table',1),(6,'2023_01_06_032853_create_faculties_table',1),(7,'2023_01_06_032938_create_programs_table',1),(8,'2023_01_06_033253_create_profile_table',1),(9,'2023_01_06_035124_create_tuition_table',1),(10,'2023_01_06_035137_create_payments_table',1),(11,'2023_01_21_185644_create_user_login_timestamps',1),(12,'2023_01_23_205018_create_residence_table',1),(13,'2023_01_23_205046_create_old_residence_table',1),(14,'2023_01_23_220250_create_checkinout_table',1),(15,'2023_01_23_220856_create_hostel_fees_table',1),(16,'2023_01_30_215711_create_requester_table',1),(17,'2023_01_30_215738_create_requests_table',1),(18,'2023_01_30_221152_create_request_candidates_table',1),(19,'2023_02_05_065622_create_suburb_rooms_table',1),(20,'2023_02_05_065712_create_mbundani_rooms_table',1),(21,'2023_02_05_235217_create_room_ranges_table',1),(22,'2023_02_15_052811_create_active_student_type',1),(23,'2023_02_15_052916_create_search_exception',1);
 /*!40000 ALTER TABLE `migrations` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -330,7 +330,7 @@ CREATE TABLE `profile` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `profile_student_id_unique` (`student_id`),
   KEY `profile_program_id_foreign` (`program_id`),
-  CONSTRAINT `profile_program_id_foreign` FOREIGN KEY (`program_id`) REFERENCES `programmes` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `profile_program_id_foreign` FOREIGN KEY (`program_id`) REFERENCES `programs` (`id`) ON DELETE CASCADE,
   CONSTRAINT `profile_student_id_foreign` FOREIGN KEY (`student_id`) REFERENCES `students` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=1401 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -346,30 +346,30 @@ INSERT INTO `profile` VALUES (1,'L0693745S','HR31','3.1','Conventional',2020),(2
 UNLOCK TABLES;
 
 --
--- Table structure for table `programmes`
+-- Table structure for table `programs`
 --
 
-DROP TABLE IF EXISTS `programmes`;
+DROP TABLE IF EXISTS `programs`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `programmes` (
+CREATE TABLE `programs` (
   `id` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `program` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `faculty_id` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   PRIMARY KEY (`id`),
-  KEY `programmes_faculty_id_foreign` (`faculty_id`),
-  CONSTRAINT `programmes_faculty_id_foreign` FOREIGN KEY (`faculty_id`) REFERENCES `faculties` (`id`) ON DELETE CASCADE
+  KEY `programs_faculty_id_foreign` (`faculty_id`),
+  CONSTRAINT `programs_faculty_id_foreign` FOREIGN KEY (`faculty_id`) REFERENCES `faculties` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `programmes`
+-- Dumping data for table `programs`
 --
 
-LOCK TABLES `programmes` WRITE;
-/*!40000 ALTER TABLE `programmes` DISABLE KEYS */;
-INSERT INTO `programmes` VALUES ('ACC12','Accounting','COM'),('ACC21','Accounting','COM'),('ACC22','Accounting','COM'),('ACC31','Accounting','COM'),('ACC32','Accounting','COM'),('ACC41','Accounting','COM'),('ACC42','Accounting','COM'),('AE12','Agriculture Economics','AGR'),('AE21','Agriculture Economics','AGR'),('AE22','Agriculture Economics','AGR'),('AE31','Agriculture Economics','AGR'),('AE32','Agriculture Economics','AGR'),('AE41','Agriculture Economics','AGR'),('AE42','Agriculture Economics','AGR'),('AS12','Animal Science','AGR'),('AS21','Animal Science','AGR'),('AS22','Animal Science','AGR'),('AS31','Animal Science','AGR'),('AS32','Animal Science','AGR'),('AS41','Animal Science','AGR'),('AS42','Animal Science','AGR'),('BC12','Business Computing','ENG'),('BC21','Business Computing','ENG'),('BC22','Business Computing','ENG'),('BC31','Business Computing','ENG'),('BC32','Business Computing','ENG'),('BC41','Business Computing','ENG'),('BC42','Business Computing','ENG'),('CS12','Crop Science','AGR'),('CS21','Crop Science','AGR'),('CS22','Crop Science','AGR'),('CS31','Crop Science','AGR'),('CS32','Crop Science','AGR'),('CS41','Crop Science','AGR'),('CS42','Crop Science','AGR'),('DS12','Development Studies','HUN'),('DS21','Development Studies','HUN'),('DS22','Development Studies','HUN'),('DS31','Development Studies','HUN'),('DS32','Development Studies','HUN'),('DS41','Development Studies','HUN'),('DS42','Development Studies','HUN'),('GIS12','Geography and Information Systems','HUN'),('GIS21','Geography and Information Systems','HUN'),('GIS22','Geography and Information Systems','HUN'),('GIS31','Geography and Information Systems','HUN'),('GIS32','Geography and Information Systems','HUN'),('GIS41','Geography and Information Systems','HUN'),('GIS42','Geography and Information Systems','HUN'),('HR12','Human and Resource Management','COM'),('HR21','Human and Resource Management','COM'),('HR22','Human and Resource Management','COM'),('HR31','Human and Resource Management','COM'),('HR32','Human and Resource Management','COM'),('HR41','Human and Resource Management','COM'),('HR42','Human and Resource Management','COM'),('PRD12','Production Engineering','ENG'),('PRD21','Production Engineering','ENG'),('PRD22','Production Engineering','ENG'),('PRD31','Production Engineering','ENG'),('PRD32','Production Engineering','ENG'),('PRD41','Production Engineering','ENG'),('PRD42','Production Engineering','ENG');
-/*!40000 ALTER TABLE `programmes` ENABLE KEYS */;
+LOCK TABLES `programs` WRITE;
+/*!40000 ALTER TABLE `programs` DISABLE KEYS */;
+INSERT INTO `programs` VALUES ('ACC12','Accounting','COM'),('ACC21','Accounting','COM'),('ACC22','Accounting','COM'),('ACC31','Accounting','COM'),('ACC32','Accounting','COM'),('ACC41','Accounting','COM'),('ACC42','Accounting','COM'),('AE12','Agriculture Economics','AGR'),('AE21','Agriculture Economics','AGR'),('AE22','Agriculture Economics','AGR'),('AE31','Agriculture Economics','AGR'),('AE32','Agriculture Economics','AGR'),('AE41','Agriculture Economics','AGR'),('AE42','Agriculture Economics','AGR'),('AS12','Animal Science','AGR'),('AS21','Animal Science','AGR'),('AS22','Animal Science','AGR'),('AS31','Animal Science','AGR'),('AS32','Animal Science','AGR'),('AS41','Animal Science','AGR'),('AS42','Animal Science','AGR'),('BC12','Business Computing','ENG'),('BC21','Business Computing','ENG'),('BC22','Business Computing','ENG'),('BC31','Business Computing','ENG'),('BC32','Business Computing','ENG'),('BC41','Business Computing','ENG'),('BC42','Business Computing','ENG'),('CS12','Crop Science','AGR'),('CS21','Crop Science','AGR'),('CS22','Crop Science','AGR'),('CS31','Crop Science','AGR'),('CS32','Crop Science','AGR'),('CS41','Crop Science','AGR'),('CS42','Crop Science','AGR'),('DS12','Development Studies','HUN'),('DS21','Development Studies','HUN'),('DS22','Development Studies','HUN'),('DS31','Development Studies','HUN'),('DS32','Development Studies','HUN'),('DS41','Development Studies','HUN'),('DS42','Development Studies','HUN'),('GIS12','Geography and Information Systems','HUN'),('GIS21','Geography and Information Systems','HUN'),('GIS22','Geography and Information Systems','HUN'),('GIS31','Geography and Information Systems','HUN'),('GIS32','Geography and Information Systems','HUN'),('GIS41','Geography and Information Systems','HUN'),('GIS42','Geography and Information Systems','HUN'),('HR12','Human and Resource Management','COM'),('HR21','Human and Resource Management','COM'),('HR22','Human and Resource Management','COM'),('HR31','Human and Resource Management','COM'),('HR32','Human and Resource Management','COM'),('HR41','Human and Resource Management','COM'),('HR42','Human and Resource Management','COM'),('PRD12','Production Engineering','ENG'),('PRD21','Production Engineering','ENG'),('PRD22','Production Engineering','ENG'),('PRD31','Production Engineering','ENG'),('PRD32','Production Engineering','ENG'),('PRD41','Production Engineering','ENG'),('PRD42','Production Engineering','ENG');
+/*!40000 ALTER TABLE `programs` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -538,7 +538,7 @@ CREATE TABLE `search_exception` (
   `program_id` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   PRIMARY KEY (`id`),
   KEY `search_exception_program_id_foreign` (`program_id`),
-  CONSTRAINT `search_exception_program_id_foreign` FOREIGN KEY (`program_id`) REFERENCES `programmes` (`id`) ON DELETE CASCADE
+  CONSTRAINT `search_exception_program_id_foreign` FOREIGN KEY (`program_id`) REFERENCES `programs` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 

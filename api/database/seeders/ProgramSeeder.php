@@ -2,10 +2,10 @@
 
 namespace Database\Seeders;
 
-use App\Models\Program;
-use App\Traits\ProgramsMall;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Constants\ProgramConstants;
 use Illuminate\Database\Seeder;
+use App\Models\Program;
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
 class ProgramSeeder extends Seeder
 {
@@ -15,19 +15,16 @@ class ProgramSeeder extends Seeder
      * @return void
      */
 
-    use ProgramsMall;
-
     public function run()
     {
-        $programmes = $this->main();
-
-        foreach ($programmes as $program) {
-
-            $exists = Program::where('id', $program['id'])->exists();
-
-            if ($exists) continue;
+        foreach (ProgramConstants::PROGRAMS as $program) {
+            if (Program::where('program_id', $program['program_id'])->exists()) continue;
             else {
-                Program::create($program);
+                Program::create([
+                    'program_id' => $program['program_id'],
+                    'program' => $program['program'],
+                    'faculty_id' => $program['faculty_id']
+                ]);
             }
         }
     }

@@ -1,0 +1,37 @@
+.residence-wrapper {
+  @extend .home-wrapper;
+}
+
+.residence-content {
+  @extend .home-content;
+  width: calc(100% - 50%);
+
+  .mobile-size-content {
+    display: none;
+  }
+
+  .heading {
+    font-size: 30px;
+    font-weight: normal;
+    margin-bottom: 25px;
+  }
+
+  .mini-heading {
+    margin-bottom: 15px;
+  }
+
+  .info-wrapper {
+    .info {
+      margin-bottom: 8px;
+      padding: 13px 0px;
+
+      p {
+        text-transform: capitalize;
+      }
+
+      &:last-child {
+        border: none;
+      }
+    }
+  }
+}

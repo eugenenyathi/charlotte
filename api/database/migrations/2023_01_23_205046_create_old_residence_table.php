@@ -1,5 +1,7 @@
 <?php
 
+use App\Constants\HostelConstants;
+use App\Constants\StudentConstants;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -15,13 +17,13 @@ return new class extends Migration
     {
         Schema::create('old_residence', function (Blueprint $table) {
             $table->id();
-            $table->string('student_id')->unique();
-            $table->enum('hostel', ['Suburb', 'Mbundani']);
+            $table->string('student_id');
+            $table->enum('student_type', StudentConstants::STUDENT_TYPE);
+            $table->enum('hostel', HostelConstants::HOSTELS);
             $table->integer('room');
-            $table->enum('part', [1.1, 1.2, 2.1, 2.2, 3.1, 3.2, 4.1, 4.2]);
-            $table->datetime('checkedIn')->nullable();
-            $table->datetime('checkedOut')->nullable();
-            $table->foreign('student_id')->references('id')->on('students')->onDelete('cascade');
+            $table->decimal('part', 2, 1);
+
+            $table->foreign('student_id')->references('student_id')->on('students')->onDelete('cascade');
         });
     }
 

@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Constants\StudentConstants;
 use Illuminate\Database\Seeder;
 use App\Models\ActiveStudentType;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -17,12 +18,12 @@ class ActiveStudentTypeSeeder extends Seeder
     {
         $data = [
             [
-                'student_type' => 'con',
-                'active' => 'Yes'
+                'student_type' => StudentConstants::CON_STUDENT,
+                'active' => StudentConstants::ACTIVE
             ],
             [
-                'student_type' => 'block',
-                'active' => 'No'
+                'student_type' => StudentConstants::BLOCK_STUDENT,
+                'active' => StudentConstants::INACTIVE
             ]
         ];
 

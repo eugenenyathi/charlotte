@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Constants\SelectionResponse;
+use App\Http\Services\GenerateRequestsService;
+use App\Http\Services\RequestsService;
 use App\Traits\Utils;
 use App\Models\Profile;
 use App\Models\Student;
@@ -11,9 +14,7 @@ use App\Models\Requester;
 use App\Models\Residence;
 use App\Models\RoomRange;
 use App\Models\CheckInOut;
-use App\Models\SuburbRoom;
 use Illuminate\Support\Str;
-use App\Models\MbundaniRoom;
 use App\Models\OldResidence;
 use App\Traits\ProgramsMall;
 use Illuminate\Http\Request;
@@ -28,10 +29,9 @@ use Illuminate\Support\Facades\DB;
 class TestController extends Controller
 {
     use HttpResponses;
-    // use FakeCredentials;
+    use FakeCredentials;
     use Utils;
     use VUtils;
-    use ProgramsMall;
 
     private $hostel;
     private $room;
@@ -43,13 +43,40 @@ class TestController extends Controller
     private $roomsWithoutStudents;
 
 
+    public function __construct(public RequestsService $requestsService, public GenerateRequestsService $generateRequestsService)
+    {
+    }
+
+
     public function index($studentID)
     {
-        // $studentID = 'L0124876Q';
-
-        $data =
-            $this->studentType($studentID);
+        $data = $this->requestsService->getRequesterRoommates('L0023986O');
 
         return $this->sendData($data);
+    }
+
+    public function randomizedPreferences()
+    {
+        $preferences = [];
+        $responses = ["yes", "no"];
+
+        while (true) {
+            if (count($preferences) === 3) break;
+            $preferences[] = $responses[$this->random(0, 1)];
+        }
+
+        return $preferences;
+    }
+
+    public function findDuplicateConfirmations()
+    {
+        $students = RequestCandidate::where('selection_confirmed', SelectionResponse::YES)->get();
+
+        return $students->filter(function ($student) {
+            return RequestCandidate::where('selected_roommate', $student->selected_roommate)
+                ->whereNot('requester_id', $student->requester_id)
+                ->where('selection_confirmed', SelectionResponse::YES)
+                ->exists();
+        });
     }
 }

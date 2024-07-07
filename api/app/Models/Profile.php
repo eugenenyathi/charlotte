@@ -12,6 +12,7 @@ class Profile extends Model
     use HasFactory;
 
     public $table = 'profile';
+    protected $fillable = ['student_id', 'program_id', 'part', 'student_type', 'enrolled'];
     public $timestamps = false;
 
     public function student()

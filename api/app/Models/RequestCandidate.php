@@ -11,5 +11,5 @@ class RequestCandidate extends Model
 
     public $table = 'request_candidates';
     public $timestamps = false;
-    protected $fillable = ['requester_id', 'selected_roomie', 'gender', 'selection_confirmed'];
+    protected $fillable = ['requester_id', 'selected_roommate', 'student_type', 'gender', 'selection_confirmed'];
 }

@@ -14,7 +14,8 @@ return new class extends Migration
     public function up()
     {
         Schema::create('user_login_timestamps', function (Blueprint $table) {
-            $table->string('id')->primary();
+            $table->id();
+            $table->string('student_id')->unique();
             $table->dateTime('current_stamp')->nullable();
             $table->dateTime('previous_stamp')->nullable();
         });

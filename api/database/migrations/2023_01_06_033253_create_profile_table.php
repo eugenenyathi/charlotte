@@ -1,5 +1,6 @@
 <?php
 
+use App\Constants\StudentConstants;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -17,11 +18,12 @@ return new class extends Migration
             $table->id();
             $table->string('student_id')->unique();
             $table->string('program_id');
-            $table->enum('part', [1.1, 1.2, 2.1, 2.2, 3.1, 3.2, 4.1, 4.2]);
-            $table->enum('student_type', ['Conventional', 'Block']);
-            $table->year('enrolled');
-            $table->foreign('student_id')->references('id')->on('students')->onDelete('cascade');
-            $table->foreign('program_id')->references('id')->on('programmes')->onDelete('cascade');
+            $table->enum('part', StudentConstants::LEVELS);
+            $table->enum('student_type', StudentConstants::STUDENT_TYPE);
+            $table->year('enrolled')->nullable();
+
+            $table->foreign('student_id')->references('student_id')->on('students')->onDelete('cascade');
+            $table->foreign('program_id')->references('program_id')->on('programs')->onDelete('cascade');
         });
     }
 

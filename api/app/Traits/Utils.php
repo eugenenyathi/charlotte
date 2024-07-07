@@ -3,12 +3,14 @@
 namespace App\Traits;
 
 use App\Models\Profile;
+use App\Models\Student;
 use App\Models\Tuition;
 use App\Models\CheckInOut;
 use App\Models\LoginTimestamps;
 use App\Models\SearchException;
-use App\Models\Student;
 use Illuminate\Support\Facades\DB;
+use App\Constants\FacultyConstants;
+use App\Constants\StudentConstants;
 
 
 trait Utils
@@ -18,10 +20,10 @@ trait Utils
     protected function faculty($studentID)
     {
         $faculty = DB::table('profile')
-            ->join('programmes', 'profile.program_id', '=', 'programmes.id')
-            ->join('faculties', 'programmes.faculty_id', '=', 'faculties.id')
-            ->select('faculties.faculty')
             ->where('student_id', $studentID)
+            ->join('programs', 'profile.program_id', '=', 'programs.program_id')
+            ->join('faculties', 'programs.faculty_id', '=', 'faculties.faculty_id')
+            ->select('faculties.faculty')
             ->first();
 
 
@@ -31,9 +33,9 @@ trait Utils
     protected function facultyID($studentID)
     {
         $faculty = DB::table('profile')
-            ->join('programmes', 'profile.program_id', '=', 'programmes.id')
-            ->select('programmes.faculty_id')
             ->where('student_id', $studentID)
+            ->join('programs', 'profile.program_id', '=', 'programs.program_id')
+            ->select('programs.faculty_id')
             ->first();
 
 
@@ -45,14 +47,14 @@ trait Utils
         //get what type of student is it
         $studentType = $this->studentType($studentID);
 
-        if ($studentType === 'Conventional') $tuitionColumn = 'con_amount';
+        if ($studentType === StudentConstants::CON_STUDENT) $tuitionColumn = 'con_amount';
         else $tuitionColumn = 'block_amount';
 
         $tuition = DB::table('profile')
-            ->join('programmes', 'profile.program_id', '=', 'programmes.id')
-            ->join('tuition', 'programmes.faculty_id', '=', 'tuition.faculty_id')
-            ->select($tuitionColumn)
             ->where('profile.student_id', $studentID)
+            ->join('programs', 'profile.program_id', '=', 'programs.program_id')
+            ->join('tuition', 'programs.faculty_id', '=', 'tuition.faculty_id')
+            ->select($tuitionColumn)
             ->first();
 
         return $tuition->$tuitionColumn;
@@ -62,9 +64,9 @@ trait Utils
     protected function program($studentID)
     {
         $program = DB::table('profile')
-            ->join('programmes', 'profile.program_id', '=', 'programmes.id')
-            ->select('programmes.program')
             ->where('profile.student_id', $studentID)
+            ->join('programs', 'profile.program_id', '=', 'programs.program_id')
+            ->select('programs.program')
             ->first();
 
         return $program->program;
@@ -101,7 +103,7 @@ trait Utils
     {
         //get current login timestamp
         $timestamp = LoginTimestamps::select('current_stamp')
-            ->where('id', $studentID)->first();
+            ->where('student_id', $studentID)->first();
 
         return $timestamp->current_stamp;
     }
@@ -110,9 +112,9 @@ trait Utils
     public function hostelFees($studentID)
     {
         $hostel = DB::table('profile')
+            ->where('profile.student_id', $studentID)
             ->join('hostel_fees', 'profile.student_type', '=', 'hostel_fees.student_type')
             ->select('hostel_fees.fee')
-            ->where('profile.student_id', $studentID)
             ->first();
 
         return $hostel->fee;
@@ -124,7 +126,7 @@ trait Utils
         //get the type of a student
         $studentType = $this->studentType($studentID);
 
-        if ($studentType === 'Conventional') $dateColumn = 'con_students_date';
+        if ($studentType === StudentConstants::CON_STUDENT) $dateColumn = 'con_students_date';
         else $dateColumn = 'block_students_date';
 
         $checkInOut = CheckInOut::select('type', 'con_students_date', 'block_students_date')->get();
@@ -158,19 +160,19 @@ trait Utils
 
     public function gender($studentID)
     {
-        $student = Student::select('gender')->where('id', $studentID)->first();
+        $student = Student::select('gender')->where('student_id', $studentID)->first();
         return $student->gender;
     }
 
     public function genderFirstLevelStudents($gender, $level)
     {
         $query = DB::table('students')
-            ->join('profile', 'students.id', '=', 'profile.student_id')
-            ->join('programmes', 'profile.program_id', '=', 'programmes.id')
-            ->select('students.id')
+            ->join('profile', 'students.student_id', '=', 'profile.student_id')
+            ->join('programs', 'profile.program_id', '=', 'programs.program_id')
+            ->select('students.student_id')
             ->where('students.gender', $gender)
             ->where('profile.part', $level)
-            ->whereNot('programmes.faculty_id', 'COM')
+            ->whereNot('programs.faculty_id', FacultyConstants::COMMERCE_FACULTY['faculty_id'])
             ->get();
 
         return $query;
@@ -185,12 +187,12 @@ trait Utils
     {
         // $student = Profile::where('student_id', $studentID)->first();
         $student = DB::table('students')
-            ->join('profile', 'students.id', '=', 'profile.student_id')
+            ->join('profile', 'students.student_id', '=', 'profile.student_id')
             ->select([
                 'students.fullName', 'students.gender',
                 'profile.student_type', 'profile.part', 'profile.enrolled'
             ])
-            ->where('students.id', $studentID)
+            ->where('students.student_id', $studentID)
             ->first();
 
         $data = [
@@ -210,7 +212,7 @@ trait Utils
 
     public function getFullName($studentID)
     {
-        $student = Student::select('fullName')->where('id', $studentID)->first();
+        $student = Student::select('fullName')->where('student_id', $studentID)->first();
 
         return $student->fullName;
     }

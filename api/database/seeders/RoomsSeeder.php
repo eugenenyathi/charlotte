@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Models\MbundaniRoom;
-use App\Models\SuburbRoom;
+use App\Models\BoysHostel;
+use App\Models\GirlsHostel;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -17,34 +17,34 @@ class RoomsSeeder extends Seeder
     public function run()
     {
         for ($i = 101; $i <= 160; $i++) {
-            SuburbRoom::create([
+            GirlsHostel::create([
                 'room' => $i
             ]);
 
 
-            MbundaniRoom::create([
+            BoysHostel::create([
                 'room' => $i
             ]);
         }
 
         for ($i = 201; $i <= 260; $i++) {
-            SuburbRoom::create([
+            GirlsHostel::create([
                 'room' => $i
             ]);
 
 
-            MbundaniRoom::create([
+            BoysHostel::create([
                 'room' => $i
             ]);
         }
 
         for ($i = 301; $i <= 360; $i++) {
-            SuburbRoom::create([
+            GirlsHostel::create([
                 'room' => $i
             ]);
 
 
-            MbundaniRoom::create([
+            BoysHostel::create([
                 'room' => $i
             ]);
         }

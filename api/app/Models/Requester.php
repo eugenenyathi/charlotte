@@ -9,6 +9,5 @@ class Requester extends Model
 {
     use HasFactory;
 
-    public $table = 'requester';
     protected $fillable = ['student_id', 'gender', 'processed'];
 }

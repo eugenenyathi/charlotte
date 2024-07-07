@@ -16,7 +16,7 @@ return new class extends Migration
         Schema::create('search_exception', function (Blueprint $table) {
             $table->id();
             $table->string('program_id');
-            $table->foreign('program_id')->references('id')->on('programmes')->onDelete('cascade');
+            $table->foreign('program_id')->references('program_id')->on('programs')->onDelete('cascade');
         });
     }
 

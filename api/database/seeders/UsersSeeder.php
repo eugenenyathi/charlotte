@@ -7,7 +7,6 @@ use App\Models\Student;
 use App\Models\LoginTimestamps;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
 class UsersSeeder extends Seeder
 {
@@ -22,13 +21,13 @@ class UsersSeeder extends Seeder
 
         foreach ($students as $student) {
             User::create([
-                'id' => $student->id,
+                'student_id' => $student->student_id,
                 'password' => Hash::make('12345678')
             ]);
 
-            // update the login in timestamp
+            // update the login timestamp
             LoginTimestamps::create([
-                'id' => $student->id,
+                'student_id' => $student->student_id,
                 'current_stamp' => now(),
             ]);
         }
@@ -37,16 +36,16 @@ class UsersSeeder extends Seeder
     //students without accounts
     private function fetchStudents()
     {
-        $students = Student::select('id')->get();
-        $virgins = [];
+        $students = Student::select('student_id')->get();
+        $hasNoAccount = [];
 
         foreach ($students as $student) {
-            $hasAccount = User::where('id', $student->id)->exists();
+            $hasAccount = User::where('student_id', $student->student_id)->exists();
 
             if ($hasAccount) continue;
-            else $virgins[] = $student;
+            else $hasNoAccount[] = $student;
         }
 
-        return $virgins;
+        return $hasNoAccount;
     }
 }

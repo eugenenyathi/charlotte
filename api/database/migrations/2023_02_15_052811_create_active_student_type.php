@@ -1,8 +1,9 @@
 <?php
 
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
+use App\Constants\StudentConstants;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\Migrations\Migration;
 
 return new class extends Migration
 {
@@ -15,8 +16,8 @@ return new class extends Migration
     {
         Schema::create('active_student_type', function (Blueprint $table) {
             $table->id();
-            $table->enum('student_type', ['con', 'block']);
-            $table->enum('active', ['Yes', 'No']);
+            $table->enum('student_type', StudentConstants::STUDENT_TYPE);
+            $table->enum('active', StudentConstants::ACTIVE_STATUS);
         });
     }
 

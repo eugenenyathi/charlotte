@@ -1,0 +1,272 @@
+ <!-- <div class="st-details" v-for="roomie in roommates" :key="roomie.id">
+        <router-link
+          :to="{ name: 'RoommateProfile', params: { studentID: roomie.id } }"
+          class="st-name"
+          >{{ roomie.fullName }}</router-link
+        >
+        <ButtonIcon class="response-icon" icon-name="fa-solid fa-check-circle" />
+      </div> -->
+
+          if (!data.checkedIn) {
+      collective.checkedIn = ''
+    } else {
+      collective.checkedIn = dayjs(data.checkedIn).format('DD MMM YYYY')
+    }
+
+    if (!data.checkedOut) {
+      collective.checkedOut = ''
+    } else {
+      collective.checkedOut = dayjs(data.checkedOut).format('DD MMM YYYY')
+    }
+
+
+    <template>
+  <section class="residence-wrapper">
+    <div class="residence-content">
+      <Loader v-if="isLoading" />
+      <div class="mobile-size-content show" v-if="!isLoading">
+        <h1 class="heading">Accommodation</h1>
+        <div class="info-wrapper">
+          <div class="info">
+            <p>Residence fees</p>
+            <p>{{ collective.fees }}</p>
+          </div>
+          <div class="info">
+            <p>Check-in</p>
+            <p>{{ collective.checkIn }}</p>
+          </div>
+
+          <div class="info">
+            <p>Check-out</p>
+            <p>{{ collective.checkOut }}</p>
+          </div>
+        </div>
+      </div>
+      <div class="desktop-size-content" v-if="!isLoading">
+        <h1 class="heading">Living Space</h1>
+        <p class="mini-heading" v-if="showPrevResidence">
+          You have not been allocated a room yet. Showing previous residence.
+        </p>
+        <div class="info-wrapper">
+          <div class="info">
+            <p>Hostel</p>
+            <p>{{ collective.hostel }}</p>
+          </div>
+          <div class="info">
+            <p>Wing</p>
+            <p>{{ collective.wing }}</p>
+          </div>
+          <div class="info">
+            <p>Floor</p>
+            <p>{{ collective.floor }}</p>
+          </div>
+          <div class="info">
+            <p>Floor side</p>
+            <p>{{ collective.floorSide }}</p>
+          </div>
+          <div class="info">
+            <p>Room</p>
+            <p>{{ collective.room }}</p>
+          </div>
+          <div class="info" v-if="showPrevResidence">
+            <p>Part</p>
+            <p>{{ collective.part }}</p>
+          </div>
+          <!-- <div class="info" v-if="collective.checkedIn">
+            <p>Checked-in</p>
+            <p>{{ collective.checkedIn }}</p>
+          </div>
+          <div class="info" v-if="collective.checkedOut">
+            <p>Checked-out</p>
+            <p>{{ collective.checkedOut }}</p>
+          </div> -->
+        </div>
+      </div>
+    </div>
+  </section>
+</template>
+
+<script setup>
+import Loader from '../components/Loader.vue'
+import useAxiosError from '../composables/useAxiosError.js'
+
+import formatDollars from '../helpers/formatDollars.js'
+
+import axios from 'axios'
+import dayjs from 'dayjs'
+
+import { ref, reactive, computed } from 'vue'
+import { useStore } from 'vuex'
+
+// TODO: fetch once, not ever again, store it on vuex
+
+const store = useStore()
+const student = computed(() => store.getters.getUser)
+const { studentNumber } = student.value
+
+const axiosError = ref('')
+const isLoading = ref(true)
+const showPrevResidence = ref(false)
+const collective = reactive({
+  hostel: '',
+  room: '',
+  part: '',
+  floor: '',
+  wing: '',
+  fees: '',
+  checkIn: '',
+  checkOut: ''
+})
+
+
+const fetchResidence = async (studentNumber) => {
+  try {
+    const { data } = await axios(`/residence/${studentNumber}`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+
+    //TODO: remove this
+    console.log(data)
+
+    if (!data.currentResidence) showPrevResidence.value = true
+
+    collective.hostel = data.hostel
+    collective.room = data.room
+    collective.part = data.part
+    collective.floor = data.floor
+    collective.floorSide = data.floorSide
+    collective.wing = data.wing
+
+    //for mobile devices
+    collective.fees = formatDollars(data.hostelFees)
+    collective.checkIn = dayjs(data.checkIn).format('DD MMM YYYY')
+    collective.checkOut = dayjs(data.checkOut).format('DD MMM YYYY')
+
+    isLoading.value = false
+  } catch (err) {
+    useAxiosError(err, axiosError)
+  }
+}
+
+fetchResidence(studentNumber)
+</script>
+
+
+
+
+const collective = reactive({
+  studentNumber: '',
+  faculty: '',
+  program: '',
+  studentType: '',
+  part: '',
+  enrolled: '',
+  lastLogin: ''
+})
+
+
+
+
+
+      <!-- <div class="desktop-size-content" v-if="!isLoading">
+        <h1 class="heading">Living Space</h1>
+        <p class="mini-heading" v-if="residence.length === 0">
+          There are no current or previous residences to show.
+        </p>
+        <template v-else>
+          <div class="info-wrapper" v-for="res in residence" :key="res.room">
+            <div class="info">
+              <p>Hostel</p>
+              <p>{{ res.hostel }}</p>
+            </div>
+            <div class="info">
+              <p>Wing</p>
+              <p>{{ res.wing }}</p>
+            </div>
+            <div class="info">
+              <p>Floor</p>
+              <p>{{ res.floor }}</p>
+            </div>
+            <div class="info">
+              <p>Floor side</p>
+              <p>{{ res.floorSide }}</p>
+            </div>
+            <div class="info">
+              <p>Room</p>
+              <p>{{ res.room }}</p>
+            </div>
+            <div class="info">
+              <p>Part</p>
+              <p>{{ res.part }}</p>
+            </div>
+          </div>
+        </template>
+</div> -->
+
+
+const show = (target) => {
+  switch (target) {
+    case 'selectedMates':
+      showSelectedMates.value = true
+      break
+    case 'preferredMates':
+      showSearchArea.value = false
+      showConfirmMates.value = false
+      showMultiConfirmMates.value = false
+      showSelectedMates.value = false
+      showPreferredMates.value = true
+      break
+    case 'searchArea':
+      showConfirmMates.value = false
+      showMultiConfirmMates.value = false
+      showSearchArea.value = true
+      break
+  }
+}
+
+const close = (target) => {
+  switch (target) {
+    case 'selectedMates':
+      showSelectedMates.value = false
+      break
+  }
+}
+
+
+ 'bg-green-500': question.id === 1 && question1 === 'yes',
+                                'bg-red-500': question.id === 2 && question2 === 'yes'
+
+
+
+
+
+                                   <button @click="handleClick(question.id, RoommatePreference.YES)"
+                            class="bg-neutral py-2 px-4 text-base rounded text-white" :class="{
+                                'bg-orange-500': question.id === 1 && question1 === 'yes',
+                                'bg-orange-500': question.id === 2 && question2 === 'yes'
+                            }">Yes</button>
+                        <button @click="handleClick(question.id, RoommatePreference.NO)"
+                            class="bg-neutral py-2 px-4 text-base rounded text-white" :class="{
+                                'bg-orange-500': question.id === 1 && question1 === 'no',
+                                'bg-orange-500': question.id === 2 && question2 === 'no'
+                            }">No</button>
+
+
+                               //fabricate roommate object property
+    let property = 'roommate1'
+
+    //get the last index of the string property
+    let lastIndex = property.charAt(property.length - 1)
+
+    //Loop through each selected student and create an object property for each eg. roommate1 = 'L0202783T'
+    selectedMates.value.forEach((roommate, index) => {
+      //replace the number of string 'roommate1' with a dynamic one -> result will be e.g. roommate2
+      let facade = property.replace(lastIndex, index + 1)
+      //create the dynamic property
+      request[`${facade}`] = roommate
+      //  console.log(request);
+    })
+
+    L0253978S

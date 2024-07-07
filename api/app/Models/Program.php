@@ -11,7 +11,7 @@ class Program extends Model
 {
     use HasFactory;
 
-    public $table = 'programmes';
+    public $table = 'programs';
     public $timestamps = false;
 
     public function profile()

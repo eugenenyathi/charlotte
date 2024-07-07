@@ -4,16 +4,20 @@ namespace App\Http\Controllers;
 
 use App\Traits\Utils;
 use App\Traits\VUtils;
-use App\Models\Student;
-use App\Models\Requests;
-use App\Models\Requester;
-use App\Models\Residence;
-use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Traits\HttpResponses;
-use App\Models\RequestCandidate;
-use App\Http\Requests\CreateRequest;
-use App\Models\SuburbRoom;
+use App\Constants\RequestStatus;
+use App\Constants\HostelConstants;
+use App\Constants\StudentConstants;
+use App\Constants\SelectionResponse;
+use App\Http\Helpers\RequestsHelpers;
+use App\Http\Services\RequestsService;
+use App\Http\Requests\RoomRequest;
+use App\DataTransferObjects\HasRoomRequestDto;
+use App\Http\Requests\RoommateResponseRequest;
+use App\DataTransferObjects\RequestResponseDto;
+use App\DataTransferObjects\RequestRoommateDto;
+use App\DataTransferObjects\RequestRequesterDto;
 
 class RequestsController extends Controller
 {
@@ -22,10 +26,13 @@ class RequestsController extends Controller
     use VUtils;
     use HttpResponses;
 
-    private $activeStudentType = 'con';
+    // private $helpers;
 
+    public function __construct(private RequestsService $requestsService, private RequestsHelpers $helpers)
+    {
+    }
 
-    public function createRequest(CreateRequest $request)
+    public function createRequest(RoomRequest $request)
     {
         $request->validated($request->all());
 
@@ -35,458 +42,197 @@ class RequestsController extends Controller
          * 3. Add the request to the candidates table
          */
 
-        $freeMates = $this->freeMates($request);
+        $freeMates = $this->helpers->freeMates($request);
 
-        if (count($freeMates) > 0) {
-            return $this->sendData($freeMates);
-        }
+        if (count($freeMates) > 0) return $this->sendData($freeMates);
 
-        //if all check out then let's roll
-
-        //get requester gender
+        //if all check out then let's roll get requester gender
         $requesterGender = $this->gender($request->requester);
-
         //capture the requester
-        Requester::create([
-            'student_id' => $request->requester,
-            'student_type' => $this->activeStudentType,
-            'gender' => $requesterGender
-        ]);
-
+        $this->requestsService->createRequester($request->requester, $requesterGender);
         //record the request on general requests
-        Requests::create([
-            'student_id' => $request->requester,
-            'student_type' => $this->activeStudentType,
-        ]);
+        $this->requestsService->createGeneralRequest($request->requester);
 
-        $candidates = [
-            [
-                'requester_id' => $request->requester,
-                'selected_roomie' => $request->roomie1,
-                'student_type' => $this->activeStudentType,
-                'gender' => $requesterGender
-            ],
-            [
-                'requester_id' => $request->requester,
-                'selected_roomie' => $request->roomie2,
-                'student_type' => $this->activeStudentType,
-                'gender' => $requesterGender
-            ],
-            [
-                'requester_id' => $request->requester,
-                'selected_roomie' => $request->roomie3,
-                'student_type' => $this->activeStudentType,
-                'gender' => $requesterGender
-            ],
-        ];
-
-        foreach ($candidates as $candidate) {
-            //capture request candidates
-            RequestCandidate::create($candidate);
+        foreach ($request->roommates as $roommateID) {
+            $this->requestsService->createRequestCandidate($request->requester, $roommateID, $requesterGender);
         }
 
         //fetch the newly created request candidates
-        $roommates = RequestCandidate::select(['selected_roomie', 'selection_confirmed'])
-            ->where('requester_id', $request->requester)
-            ->get();
+        $requestCandidates = $this->requestsService->getRequesterNewlyCreatedRequestCandidates($request->requester);
+        $candidates = $this->helpers->candidateDTOs($requestCandidates);
 
-
-        //preparing response
-        $roomies = [];
-
-        foreach ($roommates as $roomie) {
-            $student = Student::select('fullName')->where('id', $roomie->selected_roomie)->first();
-
-            $push = [
-                "id" => $roomie->selected_roomie,
-                'fullName' => $student->fullName,
-                "response" => $roomie->selection_confirmed
-            ];
-
-            $roomies[] = $push;
-        }
-
-        $data = [
-            'status' => 'success',
-            'roomies' => $roomies
-        ];
-
-        return $this->sendData($data);
+        $response = new RequestResponseDto(RequestStatus::SUCCESS, $candidates);
+        return $this->sendData($response->data());
     }
 
-    //checking if the student has made a room request or has been selected as a roomie
+    public function updateRequest(RoomRequest $request)
+    {
+        $request->validated($request->all());
+
+        // Check if the requester exists in the table, if so its an editing request
+        $studentIsARoomRequester = $this->requestsService->isStudentARoomRequester($request->requester);
+
+        if (!$studentIsARoomRequester) return $this->sendError("Invalid update request");
+
+        $requesterGender = $this->gender($request->requester);
+
+        $this->helpers->purgeOldRoommates($request);
+
+        foreach ($request->roommates as $roommateID) {
+
+            /**
+             * If roommates exists as a confirmed candidate for other requesters, throw an error
+             * If the roommate exists as a candidate, if true -> check if they are a confirmed candidate
+             * If true, skip
+             * If roommate does not exists as a candidate, record
+             */
+
+            $roommateHasAConfirmedSelectionWhereNotRequester =
+                $this->requestsService->candidateHasAConfirmedSelectionWhereNotRequester($request->requester, $roommateID);
+
+            if ($roommateHasAConfirmedSelectionWhereNotRequester) {
+                $roommateName = $this->getFullName($roommateID);
+                return $this->sendError("Selected roommate $roommateName is not available for selection");
+            } else {
+                //check if the roommate exists as a candidate & then check if candidate has a positive response
+                $candidateIsARoommateForRequester =
+                    $this->requestsService->candidateIsARoommateForRequester(
+                        $request->requester,
+                        $roommateID
+                    );
+
+                if (!$candidateIsARoommateForRequester) {
+                    $this->requestsService->createRequestCandidate($request->requester, $roommateID, $requesterGender);
+                }
+            }
+        }
+
+        //fetch the newly created request candidates
+        $requestCandidates = $this->requestsService->getRequesterNewlyCreatedRequestCandidates($request->requester);
+        $candidates = $this->helpers->candidateDTOs($requestCandidates);
+
+        $response = new RequestResponseDto(RequestStatus::SUCCESS, $candidates);
+        return $this->sendData($response->data());
+    }
+
+    //1. checking if the student has made a room request or has been selected as a roommate
     public function requestStatus($studentID)
     {
-        $this->activeStudentType = $this->getActiveStudentType();
-
-        //check if the portal is open for block students to 
-        //request rooms
+        //Get if the current student is a Con or a Block
         $studentType = $this->studentType($studentID);
 
-        if ($studentType === 'Block' && $this->activeStudentType === 'con')
-            return $this->sendData(['status' => 'portalClosed']);
+        //check if the portal is open for block students 
+        if (
+            $studentType == StudentConstants::BLOCK_STUDENT
+            && $this->requestsService->activeStudentType != StudentConstants::BLOCK_STUDENT
+        )
+            return $this->sendData(['status' => RequestStatus::PORTAL_CLOSED]); //TODO: FRONTEND NEEDS TO SHOW THIS
 
+        //check if student is allegeable to access portal
+        $registrationStatus = $this->requestsService->getRegistrationStatus($studentID);
+
+        if ($registrationStatus === 0) return $this->sendData(['status' => RequestStatus::NOT_REGISTERED]);
         // checking if the student has been allocated a room
-        $hasRoom = Requests::where('student_id', $studentID)
-            ->where('processed', 'Yes')->exists();
+        $studentHasRoom = $this->requestsService->hasStudentBeenAllocatedARoom($studentID);
+
+        switch ($studentHasRoom) {
+            case true:
+                //get the room & all the roommates for that room
+                $room = $this->requestsService->getStudentRoom($studentID)->room;
+                $roommates = $this->requestsService->getStudentRoommates($studentID, $room);
+
+                $dto = new HasRoomRequestDto(RequestStatus::ALLOCATED, $studentID, $room, $roommates);
+
+                return $this->sendData($dto->data());
+            case false:
+                //checking if rooms have been allocated for this particular student type
+                if ($studentType === StudentConstants::CON_STUDENT) $roomOccupationType = HostelConstants::CON_OCCUPIED;
+                else $roomOccupationType = HostelConstants::BLOCK_OCCUPIED;
+
+                $roomsHaveBeenAllocated = $this->requestsService->haveStudentTypeRoomsBeenAllocated($roomOccupationType);
+
+                if ($roomsHaveBeenAllocated)
+                    return $this->sendData(['status' => RequestStatus::ROOMS_ASSIGNED]); //TODO: FRONTEND NEEDS TO SHOW THIS
+
+                // checking if the student has made a room request
+                $studentIsARoomRequester = $this->requestsService->isStudentARoomRequester($studentID);
+
+                switch ($studentIsARoomRequester) {
+                    case true:
+                        $dto = new RequestResponseDto(RequestStatus::REQUESTER, $this->helpers->pullPreferredMates($studentID));
+                        return $this->sendData($dto->data());
+
+                    case false:
+                        //check if the student has been selected as a roommate
+                        $selected = $this->requestsService->hasStudentBeenSelectedAsRoommate($studentID);
+
+                        if (!$selected)
+                            return $this->sendData(['status' => RequestStatus::NOT_SELECTED]);
 
 
-        if ($hasRoom) {
-            //get the room 
-            $res = Residence::select(['hostel', 'room'])->where('student_id', $studentID)->first();
+                        //fetch the requester(s) that selected the student as a roommate
+                        $requester = $this->requestsService->getRequestersWhoSelectedTheRoommate($studentID);
 
-            //get all the roomies in that room
-            $roommates = Residence::select('student_id')
-                ->where('room', $res->room)
-                ->whereNot('student_id', $studentID)
-                ->get();
+                        //check how many requesters selected the student
+                        //If they are more that one then it means the response of this
+                        //student is neither 'yes' nor 'no' but 'waiting'
 
-
-            $roomies = [];
-
-            //loop through over the roomies and add their names
-            foreach ($roommates as $roomie) {
-                $facade = [
-                    "id" => $roomie->student_id,
-                    'fullName' => $this->getFullName($roomie->student_id),
-                ];
-
-                $roomies[] = $facade;
-            }
-
-            $data = [
-                'status' => 'allocated',
-                'name' => Str::before($this->getFullName($studentID), ' '),
-                'room' => $res->room,
-                'roomies' => $roomies
-            ];
-
-            return $this->sendData($data);
-        } else {
-            //checking if rooms have been allocated for 
-            //this particular student type
-            if ($studentType === 'Conventional') $roomOccupationType = 'con_occupied';
-            else $roomOccupationType = 'block_occupied';
-
-            $roomsHaveBeenAllocated = SuburbRoom::where($roomOccupationType, 'Yes')->exists();
-
-            if ($roomsHaveBeenAllocated)
-                return $this->sendData(['status' => 'roomsAssigned']);
-
-            // checking if the student has made a room request
-            $requester = Requester::where('student_id', $studentID)->exists();
-
-            switch ($requester) {
-                case true:
-
-                    $data = [
-                        'status' => 'requester',
-                        'roomies' => $this->pullPreferredMates($studentID)
-                    ];
-
-                    return $this->sendData($data);
-
-                case false:
-                    //check if the student has been selected as a rooomie
-                    $selected = RequestCandidate::where('selected_roomie', $studentID)->exists();
-
-                    if (!$selected) {
-                        return $this->sendData(['status' => 'clean']);
-                    }
-
-                    //fetch the requester(s) that selected the roomie
-                    $requester = RequestCandidate::select('requester_id')
-                        ->where('selected_roomie', $studentID)
-                        ->where('selection_confirmed', 'Waiting')
-                        ->get();
-
-                    //check how many requesters selected the student
-                    //If they are more that one then it means the response of this
-                    //student is neither 'yes' nor 'no' but 'waiting'
-
-                    if (count($requester) > 1) {
-
-                        $requesters = [];
-
-                        foreach ($requester as $singleRequester) {
-                            //fetch the roomies of this single requester
-                            $roomies = $this->pullPreferredMates($singleRequester->requester_id, $studentID, 'selected');
-
-
-                            //add the requester
-                            $student = Student::select('fullName')->where('id', $singleRequester->requester_id)->first();
-                            $requester = [
-                                "id" => $singleRequester->requester_id,
-                                'fullName' => $student->fullName,
-                                "program" => $this->program($singleRequester->requester_id),
-                                "gender" => $this->gender($singleRequester->requester_id)
-
-                            ];
-
-                            //prepare data
-                            $data = [
-                                'requester' => $requester,
-                                'roomies' => $roomies
-                            ];
-
-                            $requesters[] = $data;
-                        }
-
-                        $data = [
-                            'status' => 'waiting',
-                            'type' => 'multi',
-                            'requesters' => $requesters
-                        ];
-
-                        return $this->sendData($data);
-                    } else {
-                        // fetch the requester that selected the roomie
-                        $requester = RequestCandidate::select('requester_id')
-                            ->where('selected_roomie', $studentID)
-                            ->first();
-
-                        //fetch the other roomies
-                        $roomies = $this->pullPreferredMates($requester->requester_id, $studentID, 'selected');
-
-                        //check if the roomie has confirmed his/her selection request
-                        $selectionResponse = RequestCandidate::select('selection_confirmed')
-                            ->where('selected_roomie', $studentID)->first();
-
-                        if ($selectionResponse->selection_confirmed === 'Yes') {
-                            //append the requester to the list of roomies
-                            $roomies[] = $this->pullRequesterData($requester->requester_id);
-
-                            //prepare data
-                            $data = [
-                                'status' => 'confirmed',
-                                'roomies' => $roomies
-                            ];
-
-                            return $this->sendData($data);
-                        } elseif ($selectionResponse->selection_confirmed === 'No') {
-                            //prepare data
-                            $data = [
-                                'status' => 'cancelled',
-                            ];
-
-                            return $this->sendData($data);
-                        } elseif ($selectionResponse->selection_confirmed === 'Waiting') {
-                            //add the requester
-                            $student = Student::select('fullName')->where('id', $requester->requester_id)->first();
-                            $requester = [
-                                "id" => $requester->requester_id,
-                                'fullName' => $student->fullName,
-                                "program" => $this->program($requester->requester_id),
-                                "gender" => $this->gender($requester->requester_id)
-
-                            ];
-
-                            //prepare data
-                            $data = [
-                                'status' => 'waiting',
-                                'type' => 'single',
-                                'requester' => $requester,
-                                'roomies' => $roomies
-                            ];
-
-
-                            return $this->sendData($data);
-                        }
-                    }
-            }
+                        if (count($requester) > 1)
+                            return $this->helpers->hasManyRequesters($requester, $studentID);
+                        else return $this->helpers->hasSingleRequester($studentID);
+                }
         }
     }
 
-    public function roommateResponse(Request $request)
+    public function roommateResponse(RoommateResponseRequest $request)
     {
-        $this->activeStudentType = $this->getActiveStudentType();
-
-        $request->validate([
-            'studentID' => ['required', 'string', 'max:9', 'regex: /^L0\d{6}[A-Z]{1}$/u'],
-            'requester' => ['string', 'max:9', 'regex: /^L0\d{6}[A-Z]{1}$/u'],
-            'response' => ['required', 'string', 'min:2', 'max:3']
-        ]);
-
-        //studentID being the roomie who has sent a response
+        $request->validated($request->all());
 
         switch ($request->response) {
-            case 'yes':
+            case SelectionResponse::YES:
 
-                if ($request->requester) {
-                    RequestCandidate::where('requester_id', $request->requester)
-                        ->where('selected_roomie', $request->studentID)
-                        ->update(['selection_confirmed' => $request->response]);
-
-                    //nullify the other requester
-                    RequestCandidate::whereNot('requester_id', $request->requester)
-                        ->where('selected_roomie', $request->studentID)
-                        ->update(['selection_confirmed' => 'No']);
-                } else {
-                    RequestCandidate::where('selected_roomie', $request->studentID)
-                        ->update(['selection_confirmed' => $request->response]);
-                }
-
+                $this->requestsService
+                    ->updateSelectedRoommateSelectionByRequesterID($request->requesterID, $request->studentID, SelectionResponse::YES);
+                /**
+                 * If there is a selection by another requester which is
+                 * not the one the selected roommate choice, we declining
+                 * the request of that requester
+                 */
+                $this->helpers->declineOtherRequesters($request->requesterID, $request->studentID);
                 //add the student to the general requests
-                Requests::create([
-                    'student_id' => $request->studentID,
-                    'student_type' => $this->activeStudentType,
-                ]);
+                $this->requestsService->createGeneralRequest($request->studentID);
+                //fetch the other roommates
+                $roommates = $this->helpers->pullPreferredMates($request->requesterID, $request->studentID, RequestStatus::SELECTED);
 
-                //fetch the requester id
-                $requester_id = $this->requester($request->studentID);
+                $_requester = new RequestRequesterDto($request->requesterID, SelectionResponse::YES);
+                //append the requester to the list of roommates
+                $roommates[] = $_requester->data();
 
-                //fetch the other roomies
-                $roomies = $this->pullPreferredMates($requester_id, $request->studentID, 'selected');
+                return $this->sendData($roommates);
 
-                //append the requester to the list of roomies
-                $roomies[] = $this->pullRequesterData($requester_id);
+            case SelectionResponse::NO:
 
-                return $this->sendData($roomies);
-            case 'no':
-                if ($request->requester) {
-                    RequestCandidate::where('requester_id', $request->requester)
-                        ->where('selected_roomie', $request->studentID)
-                        ->update(['selection_confirmed' => $request->response]);
-                } else {
-                    RequestCandidate::where('selected_roomie', $request->studentID)
-                        ->update(['selection_confirmed' => $request->response]);
-                }
+                $this->requestsService
+                    ->updateSelectedRoommateSelectionByRequesterID($request->requesterID, $request->studentID, SelectionResponse::NO);
 
                 return $this->sendResponse('Your consent has been updated');
+
             default:
                 return $this->sendResponse('Invalid response');
         }
     }
 
-    private function requester($selected_roomie)
-    {
-        //fetch the requester that selected the roomie
-        $requester = RequestCandidate::select('requester_id')
-            ->where('selected_roomie', $selected_roomie)->first();
-
-        return $requester->requester_id;
-    }
-
-    private function pullRequesterData($requester_id)
-    {
-        //add the requester
-        $student = Student::select('fullName')->where('id', $requester_id)->first();
-
-        $requester = [
-            "id" => $requester_id,
-            'fullName' => $student->fullName,
-            "program" => $this->program($requester_id),
-            "gender" => $this->gender($requester_id),
-            "response" => "Yes"
-
-        ];
-
-        return $requester;
-    }
-
     public function revertResponse($studentID)
     {
-        RequestCandidate::where('selected_roomie', $studentID)
-            ->update(['selection_confirmed' => 'Waiting']);
+        $this->requestsService
+            ->updateSelectedRoommateSelectionConfirmationStatus($studentID, SelectionResponse::WAITING);
 
         return $this->sendResponse('Your consent has been updated');
     }
 
-
-    private function pullPreferredMates($requester, $selected_roomie = '', $type = 'requester')
-    {
-
-        switch ($type) {
-            case 'requester':
-                //fetch the newly created request candidates
-                $roomies = RequestCandidate::select(['selected_roomie', 'selection_confirmed'])
-                    ->where('requester_id', $requester)
-                    ->get();
-                break;
-            case 'selected':
-                //fetch the newly created request candidates
-                $roomies = RequestCandidate::select(['selected_roomie', 'selection_confirmed'])
-                    ->where('requester_id', $requester)
-                    ->whereNot('selected_roomie', $selected_roomie)
-                    ->get();
-                break;
-        }
-
-        $data = [];
-
-        foreach ($roomies as $roomie) {
-            $student = Student::select('fullName')->where('id', $roomie->selected_roomie)->first();
-
-            $push = [
-                "id" => $roomie->selected_roomie,
-                'fullName' => $student->fullName,
-                "response" => $roomie->selection_confirmed,
-                "program" => $this->program($roomie->selected_roomie)
-
-            ];
-
-            $data[] = $push;
-        }
-
-        return $data;
-    }
-
-    private function freeMates($request)
-    {
-        $candidates = [
-            [
-                'student_id' => $request->roomie1
-            ],
-            [
-                'student_id' => $request->roomie2,
-            ],
-            [
-                'student_id' => $request->roomie3,
-            ],
-        ];
-
-        $aintFree = [];
-        //run the check if any of them are taken
-        foreach ($candidates as $candidate) {
-            $exists = RequestCandidate::where('selection_confirmed', 'Yes')
-                ->where('selected_roomie', $candidate['student_id'])->exists();
-
-            if ($exists) {
-                $aintFree[] = $candidate['student_id'];
-            }
-        }
-
-
-        //prepare the response
-        $roomies = [];
-
-        if (count($aintFree) > 0) {
-            foreach ($aintFree as $candidateID) {
-                $facade = [
-                    'id' => $candidateID,
-                    'fullName' => $this->getFullName($candidateID),
-                    'program' => $this->program($candidateID),
-                ];
-
-                $roomies[] = $facade;
-            }
-        }
-
-        $data = [
-            'status' => 'failed',
-            'candidates' => $roomies
-        ];
-
-        return count($aintFree) > 0 ? $data : [];
-    }
-
-
     public function destroyRequest($studentID)
     {
-        Requester::where('student_id', $studentID)->delete();
-        RequestCandidate::where('requester_id', $studentID)->delete();
-        Requests::where('student_id', $studentID)->delete();
-
+        $this->requestsService->destroyRequest($studentID);
         return $this->sendResponse('Delete successful');
     }
 }

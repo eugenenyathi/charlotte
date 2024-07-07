@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Constants\SearchConstants;
 use App\Models\SearchException;
 use Illuminate\Database\Seeder;
 use App\Models\ActiveStudentType;
@@ -16,13 +17,10 @@ class SearchExceptionSeeder extends Seeder
      */
     public function run()
     {
-        $programs = [
-            ['program_id' => 'PRD31'],
-            ['program_id' => 'PRD32']
-        ];
 
-        foreach ($programs as $program) {
-            SearchException::create($program);
+
+        foreach (SearchConstants::EXCEPTIONS as $programId) {
+            SearchException::create(['program_id' => $programId]);
         }
     }
 }

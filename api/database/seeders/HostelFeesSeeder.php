@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Constants\StudentConstants;
 use App\Models\HostelFees;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -17,12 +18,12 @@ class HostelFeesSeeder extends Seeder
     {
         $hostelFees = [
             [
-                'student_type' => 'Block',
-                'fee' => 20000
+                'student_type' => StudentConstants::BLOCK_STUDENT,
+                'fee' => 60
             ],
             [
-                'student_type' => 'Conventional',
-                'fee' => 40000
+                'student_type' => StudentConstants::CON_STUDENT,
+                'fee' => 101
             ]
         ];
 

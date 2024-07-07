@@ -2,13 +2,14 @@
 
 namespace Database\Seeders;
 
+use App\Traits\Utils;
 use App\Models\Student;
 use App\Models\OldResidence;
-use App\Models\Profile;
-use App\Traits\FakeCredentials;
-use App\Traits\Utils;
-use App\Traits\VUtils;
 use Illuminate\Database\Seeder;
+use App\Constants\HostelConstants;
+use App\Constants\StudentConstants;
+use App\Traits\VUtils;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
 class OldResidenceSeeder extends Seeder
@@ -22,7 +23,9 @@ class OldResidenceSeeder extends Seeder
 
 
     use Utils;
+    use VUtils;
 
+    private $student_type;
     private $hostel;
     private $side;
     private $floor;
@@ -37,10 +40,11 @@ class OldResidenceSeeder extends Seeder
         $students = $this->fetchStudents();
 
         foreach ($students as $student) {
-            $this->init($student->id);
+            $this->init($student->student_id);
 
             OldResidence::create([
-                'student_id' => $student->id,
+                'student_id' => $student->student_id,
+                'student_type' => $this->student_type,
                 'hostel' => $this->hostel,
                 'room' => $this->room,
                 'part' => $this->part,
@@ -50,41 +54,21 @@ class OldResidenceSeeder extends Seeder
 
     private function init($studentID)
     {
-        $hostels = ['Suburb', 'Mbundani'];
+        $gender = $this->gender($studentID);
+        //student_type
+        $this->student_type = $this->studentType($studentID);
         //get hostel
-        $this->hostel = $hostels[$this->random(0, count($hostels) - 1)];
+        $this->hostel = $gender == StudentConstants::FEMALE ? HostelConstants::GIRLS_HOSTEL : HostelConstants::BOYS_HOSTEL;
         //get room
-        $this->room = $this->room($studentID);
+        $this->room = $this->room();
         //set part
         $this->part = $this->getPart($studentID);
     }
 
-    private function room($studentID)
+    //TODO: OLD RESIDENCE FUNC THAT NEEDS ATTENTION
+    private function room()
     {
-        $gender = $this->gender($studentID);
-
-        while (true) {
-            $room = $this->random(101, 345);
-
-            if ($room >= 161 && $room <= 200) {
-                continue;
-            } elseif ($room >= 261 && $room <= 300) {
-                continue;
-            } else {
-
-                if ($gender === 'Male') return $room;
-
-                if ($room >= 131 && $room <= 160) {
-                    return $room;
-                } elseif ($room >= 231 && $room <= 260) {
-                    return $room;
-                } elseif ($room >= 331 && $room <= 360) {
-                    return $room;
-                }
-            }
-        }
-
-        return $room;
+        return $this->random(101, 360);;
     }
 
 
@@ -98,9 +82,6 @@ class OldResidenceSeeder extends Seeder
 
     private function previousLevel($studentPart)
     {
-
-        $excepted = [];
-
         switch ($studentPart) {
             case 4.2:
                 return 4.1;
@@ -122,16 +103,14 @@ class OldResidenceSeeder extends Seeder
     //students without accounts
     private function fetchStudents()
     {
-        $students = Student::select('id')->get();
-        $virgins = [];
+        $students = DB::table('students')
+            ->select('students.student_id')
+            ->join("profile", "students.student_id", "profile.student_id")
+            ->whereNot("profile.part", 1.1)
+            ->get();
 
-        foreach ($students as $student) {
-            $hasAccount = OldResidence::where('student_id', $student->id)->exists();
-
-            if ($hasAccount) continue;
-            else $virgins[] = $student;
-        }
-
-        return $virgins;
+        return $students->filter(function ($student) {
+            return !OldResidence::where('student_id', $student->student_id)->exists();
+        });
     }
 }

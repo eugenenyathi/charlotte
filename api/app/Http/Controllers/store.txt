@@ -1,0 +1,291 @@
+
+/**
+ *   $candidates = [
+            [
+                'requester_id' => $request->requester,
+                'selected_roommate' => $request->roomie1,
+                'student_type' => $this->activeStudentType,
+                'gender' => $requesterGender
+            ],
+            [
+                'requester_id' => $request->requester,
+                'selected_roommate' => $request->roomie2,
+                'student_type' => $this->activeStudentType,
+                'gender' => $requesterGender
+            ],
+            [
+                'requester_id' => $request->requester,
+                'selected_roommate' => $request->roomie3,
+                'student_type' => $this->activeStudentType,
+                'gender' => $requesterGender
+            ],
+        ];
+
+        foreach ($candidates as $candidate) {
+            //capture request candidates
+            RequestCandidate::create($candidate);
+        }
+ */
+
+  if (!$studentIsARequesterOrIsSelectedRoommate) {
+                $freeMates[] = $student;
+            } else {
+                $declined = RequestCandidate::where('selected_roommate', $student->student_id)
+                    ->where('selection_confirmed', SelectionResponse::NO)
+                    ->exists();
+
+                if ($declined) $freeMates[] = $student;
+                else continue;
+            }
+
+
+
+             if ($this->response === 3) {
+                $roommate['selection_confirmed'] = SelectionResponse::YES;
+            } else if ($this->response === 2) {
+                if ($index === 2) $roommate['selection_confirmed'] = SelectionResponse::NO;
+                else $roommate['selection_confirmed'] = SelectionResponse::YES;
+            } else if ($this->response === 1) {
+                if ($index === 0) $roommate['selection_confirmed'] = SelectionResponse::YES;
+                else $roommate['selection_confirmed'] = SelectionResponse::NO;
+            } else $roommate['selection_confirmed'] = SelectionResponse::NO;
+
+
+ foreach ($students as $student) {
+            if (count($roommates) <= 3) break;
+
+            $roommate = $this->selectRoommate($student, $requester_id, $gender);
+            if (count($roommate)) $roommates[] = $roommate;
+        }
+
+         public function singleConfirmationRequesters($confirmations, $requesters, $currentLoopingRequester)
+    {
+        $singleConfirmationRequesters = [];
+
+        foreach ($requesters as $requester) {
+            if ($currentLoopingRequester === $requester->student_id) continue;
+            else {
+                $selectedRoommates = $this->freeSelectedRoommates($requester->student_id);
+
+                if ($this->isFreeRequester($requester->student_id) && count($selectedRoommates) === $confirmations) {
+                    //weed out any duplicates
+                    if (in_array($requester->student_id, $singleConfirmationRequesters)) continue;
+                    else {
+                        $singleConfirmationRequesters[] = $requester;
+                    }
+                }
+            }
+        }
+
+        //if the number of those requesters are even, this means they can form 
+        //a room, 2 + 2, otherwise if they are odd, which means one of the requester
+        // cant form a room hence, we can grab one pair of 2 and split them and add
+        //to the roommates short of 1.
+
+        return (count($singleConfirmationRequesters)) ? $singleConfirmationRequesters : [];
+    }
+
+
+ public function freeMates($students)
+    {
+        $freeStudents = [];
+
+        foreach ($students as $student) {
+
+            $requestProcessed = $this->vEngineService->isGeneralRequestProcessed($student->selected_roommate);
+
+            if ($requestProcessed) continue;
+            else $freeStudents[] = $student;
+        }
+
+        return $freeStudents;
+    }
+
+     public function set($confirmations = 0, $requesters, $currentLoopingRequester)
+    {
+        //Loop through the requesters that match the current level & gender
+        //and seek a requester who is FREE & has no confirmations from the selected roommates
+        $crowdRequesters = [];
+
+        foreach ($requesters as $requester) {
+            if ($currentLoopingRequester === $requester->student_id) continue;
+            else {
+                $selectedRoommates = $this->freeSelectedRoommates($requester->student_id);
+
+                if ($this->isFreeRequester($requester->student_id) && count($selectedRoommates) == $confirmations) {
+                    $crowdRequesters[] = $requester;
+                }
+            }
+        }
+
+        return $crowdRequesters;
+    }
+
+     if ($theOtherRequester_id) {
+            $this->vEngineService->updateRequesterProcessedStatus($theOtherRequester_id);
+        }
+
+        switch ($studentIsASelectedRoommate) {
+                    case true:
+                        $studentDeclinedSelection = RequestCandidate::where('selected_roommate', $student->student_id)
+                            ->where('selection_confirmed', SelectionResponse::NO)
+                            ->exists();
+
+                        if ($studentDeclinedSelection) $freeMates[] = $student;
+                        break;
+                    case false:
+                        $freeMates[] = $student;
+                        break;
+                }
+
+
+                            "checkedIn"  => $this->res->checkedIn["checkIn"] ?? "n/a",
+            "checkedOut"  => $this->res->checkedOut["checkOut"] ?? "n/a",
+
+
+             private function resData($studentID, $res, $resType)
+    {
+        $dto = new ResidenceDto($studentID, $res, $resType, null);
+
+        switch ($res->hostel) {
+            case HostelConstants::GIRLS_HOSTEL:
+                $dto->room = RoomRange::select('girls_wing', 'floor', 'girls_floor_side')
+                    ->where('last_room', '>=', $res->room)->first();
+
+                return $this->sendData($dto->data());
+
+            case HostelConstants::BOYS_HOSTEL:
+                $dto->room = RoomRange::select('boys_wing', 'floor', 'boys_floor_side')
+                    ->where('last_room', '>=', $res->room)->first();
+
+                return $this->sendData($dto->data());
+        }
+    }
+
+
+public function filterByProgram($students)
+    {
+        $programExceptions = SearchConstants::EXCEPTIONS;
+        $filteredStudents = [];
+
+        foreach ($students as $student) {
+            $studentProgramID = $this->programID($student->student_id);
+
+            if (in_array($studentProgramID, $programExceptions)) {
+                $filteredStudents[] = $student;
+            }
+        }
+
+        return $students->filter(function ($student) use ($programExceptions) {
+            $studentProgramID = $this->programID($student->student_id);
+            return in_array($studentProgramID, $programExceptions);
+        });
+
+        return $filteredStudents;
+    }
+
+    L0026195Y
+
+       foreach ($searchResults as $student) {
+            $studentPart = $this->part($student->student_id);
+
+            if ($studentPart == 3.1 || $studentPart == 3.2) {
+                $studentProgramID = $this->programID($student->student_id);
+
+                if (in_array($studentProgramID, $programExceptions)) {
+                    $filteredResults[] = $student;
+                }
+            } else $filteredResults[] = $student;
+        }
+
+
+            if ($student->faculty_id === FacultyConstants::ENGINEERING_FACULTY['faculty_id']) {
+                            $innerQuery->where('programs.faculty_id', FacultyConstants::AGRIC_FACULTY['faculty_id']);
+                        } else if ($student->faculty_id === FacultyConstants::AGRIC_FACULTY['faculty_id']) {
+                            $innerQuery->where('programs.faculty_id', FacultyConstants::ENGINEERING_FACULTY['faculty_id']);
+                        }
+
+
+ // ->whereNot('programs.faculty_id', FacultyConstants::COMMERCE_FACULTY['faculty_id'])
+
+  public function specialSearchQuery($request, $search_query, $student)
+    {
+        return DB::table('students')
+            ->where('students.student_id', 'LIKE', $search_query . '%')
+            ->whereNot('students.student_id', $request->studentID)
+            ->where('students.gender', $student->gender)
+            ->join('profile', 'students.student_id', '=', 'profile.student_id')
+            ->join('programs', 'profile.program_id', '=', 'programs.program_id')
+            ->select('students.student_id', 'students.fullName', 'programs.program')
+            ->whereNot('programs.faculty_id', FacultyConstants::COMMERCE_FACULTY['faculty_id'])
+            ->whereBetween('profile.part', [3.1, 4.2])
+            ->get();
+    }
+
+
+    L0167543Q
+
+
+     public function getStudentTuition($studentID)
+    {
+        return DB::table('students')
+            ->join('payments', 'students.student_id', '=', 'payments.student_id')
+            ->join('profile', 'students.student_id', '=', 'profile.student_id')
+            ->join('programs', 'profile.program_id', 'programs.program_id')
+            ->join('tuition', 'programs.faculty_id', 'tuition.faculty_id')
+            ->select('students.student_id', 'payments.amount_cleared', 'payments.registered', 'tuition.tuition')
+            ->where('students.student_id', $studentID)
+            ->first();
+    }
+
+
+     public function search(ValidateStudentID $request, $search_query)
+    {
+        $request->validated();
+
+        //Step 1: Get the current student details
+        $student = $this->searchService->getStudentDetails($request->studentID);
+
+        //Step 2: query the students table with these restrictions
+        //If the student is a part three and the program is in the exceptions 
+        // then expand the search index to part 4's
+        if ($student->part == 3.1 || $student->part == 3.2) {
+            $programExceptions = SearchConstants::EXCEPTIONS;
+            $studentProgramID = $this->programID($request->studentID);
+
+            if (in_array($studentProgramID, $programExceptions)) {
+                $searchResults = $this->specialSearch($search_query, $student);
+            }
+        } else {
+            $searchResults = $this->searchService->searchQuery($student, SearchConstants::NORMAL_SEARCH, $search_query);
+        }
+
+        $whatSearch = $this->__whatSearch($student);
+        $searchResults = [];
+
+
+        switch ($whatSearch) {
+            case SearchConstants::SPECIAL_SEARCH:
+                $searchResults = $this->specialSearch('L0', $student);
+                break;
+            case SearchConstants::NORMAL_SEARCH:
+                $searchResults = $this->searchService->searchQuery($student, SearchConstants::NORMAL_SEARCH, 'L0');
+                break;
+        }
+
+        //Step 3: differentiate the students that are already chosen by others from the rest
+        $filteredResults = $this->sortStudents($searchResults);
+
+        //Step 3: send back the results
+        return $this->sendData($filteredResults);
+    }
+
+
+         for ($i = 1; $i <= 3; $i++) {
+            /**
+             * We are try to grab all the roommates from 1 to 3
+             * dynamically without literally doing roommate1, roommate2 etc
+             */
+            $selectedRoommateID = $request["roommate{$i}"];
+            $this->requestsService->createRequestCandidate($request->requester, $selectedRoommateID, $requesterGender);
+        }

@@ -1,4 +1,4 @@
-# project mylsu
+# project charlotte
 
 ### what problem is it solving
 
@@ -19,11 +19,12 @@
 ### To start the frontend app
 
 - cd into client
-- run `npm run serve`
+- run `npm run dev`
 - runs on default localhost port 8080
 
 ### Before you start the backend app
-- make sure you have a database called mylsu
+
+- make sure you have a database called charlotte
 - go into the server folder, track the environment file, change the db user and password variables
 
 ### To start the backend app
@@ -38,7 +39,7 @@
 
 ### Important db notes
 
-- the .env db is set on mylsu
+- the .env db is set on charlotte
 - the student table stores all the personal info of the student
 - the profile table stores all the school related info
 - the users table stores all the login info
@@ -59,8 +60,8 @@
 
 - The AuthController file handles all the logging/registration interactions
 
-
 ### To migrate and seed the database
+
 - run `php artisan migrate`
 - then run `php artisan seed`
 

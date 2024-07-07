@@ -20,7 +20,6 @@ class StudentFactory extends Factory
 
     public function definition()
     {
-        // $gender = $this->faker->randomElement(['Female', 'Male']);
         $gender = 'Female';
 
         return [

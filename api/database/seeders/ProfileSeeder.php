@@ -2,56 +2,46 @@
 
 namespace Database\Seeders;
 
+use Carbon\Carbon;
+use App\Traits\Utils;
 use App\Models\Profile;
 use App\Models\Student;
-use Illuminate\Support\Str;
-use App\Traits\ProgramsMall;
-use App\Traits\Utils;
 use Illuminate\Database\Seeder;
+use App\Constants\ProgramConstants;
+use App\Constants\StudentConstants;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
 class ProfileSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     *
-     * @return void
-     */
-
     private $part;
     private $programID;
     private $enrolled;
-    private $studentType = 'Conventional';
-    private $programStudentType = 'con';
+    private $studentType;
 
     use Utils;
-    use ProgramsMall;
 
     public function run()
     {
 
-        //get all students who don't have profile
+        //get all StudentConstants who don't have a profile
         $students = $this->fetchStudents();
 
         $counter = 1;
 
         foreach ($students as $student) {
 
-            //for every 4 conventional students create 1 block
+            //TODO: change back to this setting after primary testing
+            // for every 4 conventional student create 1 block
             if ($counter > 4) {
-                $this->studentType = 'Block';
-                $this->programStudentType = 'block';
-                $counter = 1;
-            } else {
-                $this->studentType = 'Conventional';
-                $this->programStudentType = 'con';
-            }
+                $this->studentType = StudentConstants::BLOCK_STUDENT;
+                $counter = 0;
+            } else $this->studentType = StudentConstants::CON_STUDENT;
 
             //setting values to the properties
             $this->init();
 
             Profile::create([
-                'student_id' => $student->id,
+                'student_id' => $student->student_id,
                 'program_id' => $this->programID,
                 'part' => $this->part,
                 'student_type' => $this->studentType,
@@ -62,99 +52,62 @@ class ProfileSeeder extends Seeder
         }
     }
 
-
     private function init()
     {
 
         /**
          * 1. Allocate a random part/level 
-         * 2. Set the enrollment year
-         * 3. Match that part with an appropriate program level
+         * 2. Allocate a random program
+         * 3. Set the enrollment year
          */
 
-        // this determines how many parts will you hv, you can reduce
-        // them to allow for better or focused testing
-        $levels  = [1.2, 2.1, 2.2, 3.1, 4.1, 4.2];
+        $this->part = StudentConstants::LEVELS[$this->random(0, count(StudentConstants::LEVELS) - 1)];
+        $this->programID = $this->randomProgramID();
+        $this->enrolled = $this->enrollmentYear();
+    }
 
-        //these are restricted so to allow for better testing
-        $blockLevels = [1.2, 2.1, 2.2];
-
-        //Getting a random level/part
-        $this->part = $levels[$this->random(0, count($levels) - 1)];
-
-        if ($this->studentType === 'Block')
-            $this->part = $blockLevels[$this->random(0, count($blockLevels) - 1)];
-
-        //this is the function that creates all the program codes and stuff
-        //its found in the traits folder
-        $this->main();
+    private function enrollmentYear()
+    {
+        $currentYear = Carbon::now()->year;
 
         switch ($this->part) {
+            case 1.1:
+                return $currentYear;
             case 1.2:
-                //this function matches the student part with a corresponding program code part
-                $programs = $this->levelProgramCodes($this->programStudentType, 12);
-                $this->enrolled = 2022;
-                //Get a random program id
-                $this->programID = $this->randomProgramID($programs);
-                break;
+                return $currentYear;
             case 2.1:
-                $programs = $this->levelProgramCodes($this->programStudentType, 21);
-                $this->enrolled = 2021;
-                //Get a random program id
-                $this->programID = $this->randomProgramID($programs);
-                break;
+                return $currentYear - 1;
             case 2.2:
-                $programs = $this->levelProgramCodes($this->programStudentType, 22);
-                $this->enrolled = 2021;
-                //Get a random program id
-                $this->programID = $this->randomProgramID($programs);
-                break;
+                return $currentYear - 1;
             case 3.1:
-                $programs = $this->levelProgramCodes($this->programStudentType, 31);
-                $this->enrolled = 2020;
-                //Get a random program id
-                $this->programID = $this->randomProgramID($programs);
-                break;
+                return $currentYear - 2;
             case 3.2:
-                $programs = $this->levelProgramCodes($this->programStudentType, 32);
-                $this->enrolled = 2020;
-                //Get a random program id
-                $this->programID = $this->randomProgramID($programs);
-                break;
+                return $currentYear - 2;
             case 4.1:
-                $programs = $this->levelProgramCodes($this->programStudentType, 41);
-                $this->enrolled = 2019;
-                //Get a random program id
-                $this->programID = $this->randomProgramID($programs);
-                break;
+                return $currentYear - 3;
             case 4.2:
-                $programs = $this->levelProgramCodes($this->programStudentType, 42);
-                $this->enrolled = 2019;
-                //Get a random program id
-                $this->programID = $this->randomProgramID($programs);
-                break;
+                return $currentYear - 3;
         }
     }
 
-
-    //students without accounts
+    //Students without accounts
     private function fetchStudents()
     {
-        $students = Student::select('id')->get();
-        $virgins = [];
+        $students = Student::select('student_id')->get();
+        $hasNoAccount = [];
 
         foreach ($students as $student) {
-            $hasAccount = Profile::where('student_id', $student->id)->exists();
+            $hasAccount = Profile::where('student_id', $student->student_id)->exists();
 
             if ($hasAccount) continue;
-            else $virgins[] = $student;
+            else $hasNoAccount[] = $student;
         }
 
-        return $virgins;
+        return $hasNoAccount;
     }
 
-    private function randomProgramID($programs)
+    private function randomProgramID()
     {
-        return $programs[$this->random(0, count($programs) - 1)];
+        return ProgramConstants::PROGRAM_IDS[$this->random(0, count(ProgramConstants::PROGRAM_IDS) - 1)];
     }
 }

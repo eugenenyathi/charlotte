@@ -2,9 +2,10 @@
 
 namespace Database\Seeders;
 
+use App\Constants\FacultyConstants;
+use Illuminate\Database\Seeder;
 use App\Models\Faculty;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Database\Seeder;
 
 class FacultiesSeeder extends Seeder
 {
@@ -15,27 +16,11 @@ class FacultiesSeeder extends Seeder
      */
     public function run()
     {
-        $faculties = [
-            [
-                'id' => 'AGR',
-                'faculty' => 'Agricultural Sciences'
-            ],
-            [
-                'id' => 'ENG',
-                'faculty' => 'Engineering'
-            ],
-            [
-                'id' => 'HUN',
-                'faculty' => 'Humanities'
-            ],
-            [
-                'id' => 'COM',
-                'faculty' => 'Commerce'
-            ]
-        ];
-
-        foreach ($faculties as $faculty) {
-            Faculty::create($faculty);
+        foreach (FacultyConstants::FACULTIES as $faculty) {
+            Faculty::create([
+                'faculty_id' => $faculty['faculty_id'],
+                'faculty' => $faculty['faculty_name']
+            ]);
         }
     }
 }

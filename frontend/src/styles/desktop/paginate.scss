@@ -1,0 +1,75 @@
+.paginate-wrapper {
+  margin-top: 30px;
+  margin-bottom: 15px;
+  @include flexSpaceBtw;
+}
+
+.paginate-ul {
+  @include flexAlign;
+  gap: 10px;
+
+  .list-item {
+    list-style-type: none;
+    font-size: 16px;
+    width: 35px;
+    height: 35px;
+    border-radius: 4px;
+    background-color: transparent;
+    @include flexCenter;
+    color: $color-dark-3;
+    cursor: pointer;
+    transition: $transition;
+
+    &:hover {
+      font-weight: bold;
+      background-color: $color-grey-3;
+    }
+
+    &.isActive {
+      color: $color-light-1;
+      font-weight: bold;
+      background-color: $color-primary;
+    }
+  }
+}
+
+.show-rows-wrapper {
+  @include flexAlign;
+  gap: 15px;
+
+  h3 {
+    font-size: 18px;
+    font-weight: normal;
+  }
+
+  .show-rows-inner {
+    padding: 0px 10px;
+    height: 40px;
+    width: 145px;
+    border: 1px solid $color-grey-3;
+    border-radius: 4px;
+    box-shadow: $box-shadow;
+    background-color: $color-light-1;
+    @include flexAlign;
+
+    .row-number {
+      flex: 1;
+
+      span {
+        font-size: 17px;
+        font-weight: bold;
+      }
+    }
+
+    .arrow-btns {
+      @include flexAlign;
+      cursor: pointer;
+    }
+  }
+}
+
+.nested-views-position-container.special {
+  .paginate-wrapper {
+    margin-top: 25px;
+  }
+}

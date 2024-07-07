@@ -9,6 +9,6 @@ class OldResidence extends Model
 {
     use HasFactory;
     public $table = 'old_residence';
-    public $fillable = ['student_id', 'student_type', 'hostel', 'room', 'part', 'checkedIn', 'checkedOut'];
+    public $fillable = ['student_id', 'student_type', 'hostel', 'room', 'part'];
     public $timestamps = false;
 }

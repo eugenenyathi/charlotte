@@ -3,19 +3,25 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Traits\Utils;
 use App\Models\Student;
 use Illuminate\Http\Request;
-use App\Http\Requests\UserRequest;
-use App\Http\Requests\ValidateUser;
-use App\Exceptions\UserNotFoundException;
-use App\Exceptions\StudentNotFoundException;
-use App\Exceptions\AccountExistsException;
-use App\Models\LoginTimestamps;
 use App\Traits\HttpResponses;
-use App\Traits\Utils;
+use App\Models\LoginTimestamps;
+use App\Http\Requests\UserRequest;
+use App\Http\Services\AuthService;
+use App\Constants\FacultyConstants;
+use App\Http\Requests\ValidateUser;
+use App\DataTransferObjects\AuthDto;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Database\QueryException;
+use App\Exceptions\UserNotFoundException;
+use App\Exceptions\AccountExistsException;
+use App\Constants\SearchConstants;
+use App\Exceptions\StudentNotFoundException;
+use App\Exceptions\InvalidCredentialsException;
+use App\Exceptions\UnauthorizedAccessException;
 
 class AuthController extends Controller
 {
@@ -23,24 +29,25 @@ class AuthController extends Controller
     use HttpResponses;
     use Utils;
 
+    public function __construct(private AuthService $authService)
+    {
+    }
+
     public function validateCredentials(ValidateUser $request)
     {
         $request->validated($request->all());
 
         //verify student using studentID and nationalID
-        $student =  Student::where('id', $request->studentID)->where('national_id', $request->nationalID)->first();
+        $student = $this->authService->verifyNationalID($request->student_id, $request->nationalID);
 
-        if (!$student) {
-            throw new StudentNotFoundException();
-        }
+        if (!$student) throw new StudentNotFoundException();
+
 
         if ($request->dob) {
             //verify student with studentID and DOB
-            $student = Student::where('id', $request->studentID)->where('dob', $request->dob)->first();
+            $student = $this->authService->verifyDOB($request->student_id, $request->dob);
 
-            if (!$student) {
-                throw new StudentNotFoundException();
-            }
+            if (!$student)  throw new StudentNotFoundException();
         }
 
         return $this->sendResponse('Credentials verified successfully');
@@ -50,44 +57,27 @@ class AuthController extends Controller
     {
         $request->validated($request->all());
 
-        //check if the student is not allowed to create an account
+        //check if the student is allowed to create an account
         //1. If you a commerce student boot out
         $studentFaculty = $this->facultyID($request->studentID);
 
-        if ($studentFaculty === 'COM') {
-            return $this->sendError('Unauthorized access!');
-        }
-
-        try {
-            // create user 
-            $user = User::create([
-                'id' => $request->studentID,
-                'password' => Hash::make($request->password)
-            ]);
-
-
-            // update the login in timestamp
-            LoginTimestamps::create([
-                'id' => $request->studentID,
-                'current_stamp' => now(),
-            ]);
-
-
-            $userInfo = Student::select('fullName')->find($request->studentID);
-
-            $data = [
-                "studentNumber" => $request->studentID,
-                "fullName" => $userInfo->fullName,
-                "token" => $user->createToken('API token of ' . $userInfo->fullName)->plainTextToken
-            ];
-
-            return $this->sendData($data, 201);
-        } catch (QueryException $e) {
+        if ($studentFaculty === FacultyConstants::COMMERCE_FACULTY['faculty_id']) {
+            throw new UnauthorizedAccessException();
+        } else if ($this->authService->accountExists($request->studentID)) {
             throw new AccountExistsException();
-        } catch (\Exception $e) {
-            echo get_class($e);
-            return response()->json($e);
         }
+
+        // create user 
+        $user = $this->authService->createUser($request->studentID, $request->password);
+        // update the login in timestamp
+        $this->authService->logTimestamp($request->studentID);
+
+        $userFullName = $this->authService->getStudentFullName($request->studentID);
+        $token = $user->createToken('API token of ' . $userFullName)->plainTextToken;
+
+        $dto = new AuthDto($request->studentID, $userFullName, $token);
+
+        return $this->sendData($dto->data(), 201);
     }
 
     public function login(UserRequest $request)
@@ -95,88 +85,64 @@ class AuthController extends Controller
         $request->validated($request->all());
 
         $verify = [
-            'id' => $request->studentID,
+            'student_id' => $request->studentID,
             'password' => $request->password
         ];
 
-        if (!Auth::attempt($verify)) {
-            return $this->sendError('Invalid credentials', 401);
-        }
+        if (!Auth::attempt($verify)) throw new InvalidCredentialsException();
 
         //check if the student is not allowed to login
         //1. If you a commerce student boot out
         //2. If you are a part 3 not in PRD boot out
         $studentFaculty = $this->facultyID($request->studentID);
         $studentPart = $this->part($request->studentID);
-        $programExceptions = $this->programExceptions();
+        $programExceptions = SearchConstants::EXCEPTIONS;
         $studentProgramID = $this->programID($request->studentID);
 
-        if ($studentFaculty === 'COM') {
-            return $this->sendError('Unauthorized access!');
+        if ($studentFaculty === FacultyConstants::COMMERCE_FACULTY['faculty_id']) {
+            throw new UnauthorizedAccessException();
         } elseif ($studentPart == 3.1 || $studentPart == 3.2) {
             if (!in_array($studentProgramID, $programExceptions))
-                return $this->sendError('Unauthorized access!');
+                throw new UnauthorizedAccessException();
         }
 
         //get current login timestamp
-        $timestamp = LoginTimestamps::select('current_stamp')->where('id', $request->studentID)->first();
-
-
+        $timestamp = $this->authService->getCurrentTimestamp($request->studentID);
         //update the timestamps
-        LoginTimestamps::where('id', $request->studentID)
-            ->update([
-                'previous_stamp' => $timestamp->current_stamp,
-                'current_stamp' => now()
-            ]);
+        $this->authService->updateTimestamps($timestamp->current_stamp, $request->studentID);
 
-        $user = Student::select('fullName')->find($request->studentID);
+        $user = $this->authService->getUser($request->studentID);
+        $userFullName = $this->authService->getStudentFullName($request->studentID);
+        $token = $user->createToken('API token of ' . $userFullName)->plainTextToken;
 
-        //delete any existing tokens
-        // Auth::user()->tokens()->delete();
+        $dto = new AuthDto($request->studentID, $userFullName, $token);
 
-        $data = [
-            "studentNumber" => $request->studentID,
-            "fullName" => $user->fullName,
-            "token" => Auth::user()->createToken('API token of ' . $user->fullName)->plainTextToken
-        ];
-
-        return $this->sendData($data);
+        return $this->sendData($dto->data());
     }
 
     public function resetPassword(UserRequest $request)
     {
         $request->validated($request->all());
 
-        $user = User::where('id', $request->studentID)->update([
-            'password' => Hash::make($request->password)
-        ]);
+        $user = $this->authService->updateUserPassword($request->studentID, $request->password);
 
-        if (!$user) {
-            throw new UserNotFoundException();;
-        }
+        if (!$user) throw new UserNotFoundException();;
 
-        $user = User::where('id', $request->studentID)->first();
+        $user = $this->authService->getUser($request->studentID);
+        $userFullName = $this->authService->getStudentFullName($request->studentID);
+        $token = $user->createToken('API token of ' . $userFullName)->plainTextToken;
 
-        // //delete any existing tokens
-        // $user->tokens()->delete();
+        $dto = new AuthDto($request->studentID, $userFullName, $token);
 
-        $userInfo = Student::select('fullName')->find($request->studentID);
-
-        $data = [
-            "studentNumber" => $request->studentID,
-            "fullName" => $userInfo->fullName,
-            "token" => $user->createToken('Api Token of ' . $userInfo->fullName)->plainTextToken
-        ];
-
-        return $this->sendData($data);
+        return $this->sendData($dto->data());
     }
 
-    public function logout($studentID)
-    {
-        Auth::user()->tokens()->delete();
+    // public function logout($studentID)
+    // {
+    //     Auth::user()->tokens()->delete();
 
-        return $this->sendResponse('Logged out');
-    }
+    //     return $this->sendResponse('Logged out');
+    // }
 
     public function destroy($studentID)
     {

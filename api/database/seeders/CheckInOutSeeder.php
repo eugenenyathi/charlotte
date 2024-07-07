@@ -21,13 +21,13 @@ class CheckInOutSeeder extends Seeder
             [
                 [
                     'type' => 'checkIn',
-                    'con_students_date' => '2023-02-26',
-                    'block_students_date' => '2023-04-16'
+                    'con_students_date' => '2024-04-28',
+                    'block_students_date' => '2024-04-01'
                 ],
                 [
                     'type' => 'checkOut',
-                    'con_students_date' => '2023-04-16',
-                    'block_students_date' => '2023-05-13',
+                    'con_students_date' => '2024-06-07',
+                    'block_students_date' => '2024-04-26',
                 ]
             ];
 

@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('faculty_id')->unique();
             $table->integer('con_amount');
             $table->integer('block_amount');
-            $table->foreign('faculty_id')->references('id')->on('faculties')->onDelete('cascade');
+            $table->foreign('faculty_id')->references('faculty_id')->on('faculties')->onDelete('cascade');
         });
     }
 

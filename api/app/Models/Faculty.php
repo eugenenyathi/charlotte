@@ -12,7 +12,7 @@ class Faculty extends Model
     use HasFactory;
 
     public $timestamps = false;
-    protected $fillable = ['id', 'facultyName'];
+    protected $fillable = ['id', 'faculty'];
 
     public function program()
     {

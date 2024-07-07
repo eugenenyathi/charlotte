@@ -11,8 +11,8 @@ class Student extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['id', 'national_id', 'dob', 'fullName', 'gender'];
-    public $incrementing = false;
+    protected $fillable = ['student_id', 'national_id', 'dob', 'fullName', 'gender'];
+    public $timestamps = false;
 
     public function user()
     {

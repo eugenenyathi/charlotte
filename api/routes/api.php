@@ -1,15 +1,19 @@
 <?php
 
 use Illuminate\Http\Request;
+use App\Http\Controllers\VEngine;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\TestController;
-use App\Http\Controllers\SearchController;
-use App\Http\Controllers\RequestsController;
-use App\Http\Controllers\GenerateRequests;
 use App\Http\Controllers\UtilsController;
-use App\Http\Controllers\VEngine;
+use App\Http\Controllers\SearchController;
+use App\Http\Controllers\VAuditController;
+use App\Http\Controllers\VTesterController;
+use App\Http\Controllers\RequestsController;
+use App\Http\Controllers\MiscellaneousController;
+use App\Http\Controllers\GenerateRequestsController;
+use App\Http\Controllers\RoommatePreferenceController;
 
 /*
 |--------------------------------------------------------------------------
@@ -27,9 +31,9 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::get('/v1/test/{studentID}', [TestController::class, 'index']);
-Route::get('/v1/test2/{studentID}', [TestController::class, 'index']);
 
-Route::get('/v1/request/status/{studentID}', [RequestsController::class, 'requestStatus']);
+//TODO: REMOVE ITS FOR TESTING
+Route::get('/v1/test/request/status/{studentID}', [RequestsController::class, 'requestStatus']);
 
 
 Route::prefix('/v1/utils')->controller(UtilsController::class)->group(function () {
@@ -39,9 +43,12 @@ Route::prefix('/v1/utils')->controller(UtilsController::class)->group(function (
 });
 
 
-//mylsu-auto app
-Route::prefix('/v1/auto-app')->controller(GenerateRequests::class)->group(function () {
-    Route::get('/generate', 'init');
+
+//charlotte-auto app
+Route::get("/v1/auto-app/generate-requests", [GenerateRequestsController::class, 'init']);
+Route::get("/v1/auto-app/v-tests/{scenario}", [VTesterController::class, 'init']);
+
+Route::prefix('/v1/auto-app')->controller(MiscellaneousController::class)->group(function () {
     Route::get('/stats', 'stats');
     Route::get('/destroy', 'destroyAll');
     Route::get('/clear', 'clearAll');
@@ -59,12 +66,13 @@ Route::prefix('/v1/v-engine')->controller(VEngine::class)->group(function () {
     Route::get('/audit', 'audit');
 });
 
+//v-audit
+Route::get('/v1/v-audit', [VAuditController::class, 'auditInit']);
+
 
 Route::prefix('/v1')->controller(AuthController::class)->group(function () {
     Route::post("/validate", 'validateCredentials');
-    Route::post("/register", 'register');
     Route::post("/login", 'login');
-    Route::post("/reset_password", 'resetPassword');
     Route::get("/logout/{studentID}", 'logout');
     Route::post("/destroy/{studentID}", 'destroy');
 });
@@ -73,6 +81,10 @@ Route::prefix('/v1')->controller(AuthController::class)->group(function () {
 //protected routes
 Route::group(['middleware' => ['auth:sanctum']], function () {
 
+    Route::get('/v1/token', function () {
+        return response('valid token');
+    });
+
     Route::prefix('/v1')->controller(HomeController::class)->group(function () {
         Route::get("/dashboard/1/{studentID}", 'dashboardReminder');
         Route::get("/dashboard/2/{studentID}", 'dashboardAside');
@@ -80,22 +92,28 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get("/residence/{studentID}", 'residence');
 
         //changing the password
-        Route::post("/password/verify", 'verifyCurrentPassword');
-        Route::patch("/password/update", 'updatePassword');
+        // Route::post("/password/verify", 'verifyCurrentPassword');
+        // Route::patch("/password/update", 'updatePassword');
     });
 
     Route::prefix('/v1')->controller(SearchController::class)->group(function () {
-        Route::post("/search/{student_id}", 'index')->where('student_id', '^L0\d*');
+        Route::post("/search/{student_id}", 'search')->where('student_id', '^L0\d*');
+        Route::get("/match/{student_id}", 'match')->where('studentID', '^L0\d{6}[A-Z]{1}$');
+    });
+
+    Route::prefix('/v1')->controller(RoommatePreferenceController::class)->group(function () {
+        Route::get('/roommate_preference/{studentID}', 'get')->where('studentID', '^L0\d{6}[A-Z]{1}$');
+        Route::post('/roommate_preference', 'create');
+        Route::put('/roommate_preference', 'update');
     });
 
     Route::prefix('/v1/request')->controller(RequestsController::class)->group(function () {
-        // Route::get('/status/{studentID}', 'requestStatus');
-        Route::post("/create", 'createRequest');
+        Route::get('/status/{studentID}', 'requestStatus');
+        Route::post("", 'createRequest');
+        Route::put("", 'updateRequest');
         Route::patch("/response", 'roommateResponse');
-
         Route::patch("/response/revert/{studentID}", 'revertResponse');
-
-        Route::get("/destroy/{studentID}", 'destroyRequest');
+        Route::delete("/destroy/{studentID}", 'destroyRequest');
     });
 
     // logout

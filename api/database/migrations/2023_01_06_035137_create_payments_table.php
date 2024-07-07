@@ -17,8 +17,8 @@ return new class extends Migration
             $table->id();
             $table->string('student_id')->unique();
             $table->integer('amount_cleared');
-            $table->boolean('registered')->default(1);
-            $table->foreign('student_id')->references('id')->on('students')->onDelete('cascade');
+            $table->boolean('registered')->default(0);
+            $table->foreign('student_id')->references('student_id')->on('students')->onDelete('cascade');
         });
     }
 
